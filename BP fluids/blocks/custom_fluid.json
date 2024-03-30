@@ -1,0 +1,1537 @@
+{
+  "format_version": "1.20.60",
+  "minecraft:block": {
+    "description": {
+      "identifier": "csm:oil",
+      "menu_category": {
+        "category": "none"
+      },
+      "states": {
+        "inv:east": [0,1,2],
+        "inv:west": [0,1,2],
+        "inv:north": [0,1,2],
+        "inv:south": [0,1,2],
+        "inv:up": [0,1],
+        "inv:down": [0,1],
+        "csm:depth": [6,7,5,4,3,2,1],
+        "csm:direction": ["none","s","n","e","w"]
+      }
+    },
+    "components": {
+      "minecraft:light_dampening": 0,
+      "minecraft:collision_box": false,
+      "minecraft:selection_box": false,
+      "minecraft:destructible_by_explosion": false,
+      
+      "minecraft:queued_ticking": {
+        "looping": true,
+        "interval_range": [13, 14],
+        "on_tick": {
+          "event": "csm:flow"
+        }
+      },
+      
+      "minecraft:material_instances": {
+        "*": {
+          "texture": "oil",
+          "render_method": "blend",
+          "ambient_occlusion": false,
+          "face_dimming": false
+        }
+      },
+      "minecraft:loot": "loot_tables/empty.json",
+      "tag:custom_fluid": {},
+      "tag:fluid": {}
+    },
+    "events": {
+      "csm:flow": {
+        "run_command":{
+            "command": "scriptevent csm:fluid custom_fluid"
+        }
+      }
+      
+    },
+    "permutations": [
+      {
+        "condition": "q.block_state('csm:depth') == 1 && q.block_state('csm:direction') == 'north'",
+        "components": {
+          "minecraft:geometry": {
+            "identifier": "geometry.fluid.1",
+            "bone_visibility": {
+              "up": "q.block_state('inv:up') == 0",
+              "down": "q.block_state('inv:down') == 0",
+              "north": "q.block_state('inv:north') == 0",
+              "east": "q.block_state('inv:east') == 0",
+              "west": "q.block_state('inv:west') == 0",
+              "south": "q.block_state('inv:south') == 0",
+              "north_half": "q.block_state('inv:north') == 1",
+              "east_half": "q.block_state('inv:east') == 1",
+              "west_half": "q.block_state('inv:west') == 1",
+              "south_half": "q.block_state('inv:south') == 1"
+            }
+          },
+          "minecraft:material_instances": {
+            "*": {
+              "texture": "oil",
+              "render_method": "blend",
+              "face_dimming": false,
+              "ambient_occlusion": false
+            },
+            "up": {
+              "texture": "flowing_oil",
+              "render_method": "blend",
+              "face_dimming": false,
+              "ambient_occlusion": false
+            }
+          }
+        }
+      },
+      {
+        "condition": "q.block_state('csm:depth') == 1 && q.block_state('csm:direction') == 'east'",
+        "components": {
+          "minecraft:geometry": {
+            "identifier": "geometry.fluid.1",
+            "bone_visibility": {
+              "up": "q.block_state('inv:up') == 0",
+              "down": "q.block_state('inv:down') == 0",
+              "north": "q.block_state('inv:north') == 0",
+              "east": "q.block_state('inv:east') == 0",
+              "west": "q.block_state('inv:west') == 0",
+              "south": "q.block_state('inv:south') == 0",
+              "north_half": "q.block_state('inv:north') == 1",
+              "east_half": "q.block_state('inv:east') == 1",
+              "west_half": "q.block_state('inv:west') == 1",
+              "south_half": "q.block_state('inv:south') == 1"
+            }
+          },
+          "minecraft:material_instances": {
+            "*": {
+              "texture": "oil",
+              "render_method": "blend",
+              "face_dimming": false,
+              "ambient_occlusion": false
+            },
+            "up": {
+              "texture": "flowing_oil",
+              "render_method": "blend",
+              "face_dimming": false,
+              "ambient_occlusion": false
+            }
+          },
+          "minecraft:transformation": {
+            "rotation": [
+              0,
+              90,
+              0
+            ]
+          }
+        }
+      },
+      {
+        "condition": "q.block_state('csm:depth') == 1 && q.block_state('csm:direction') == 'south'",
+        "components": {
+          "minecraft:geometry": {
+            "identifier": "geometry.fluid.1",
+            "bone_visibility": {
+              "up": "q.block_state('inv:up') == 0",
+              "down": "q.block_state('inv:down') == 0",
+              "north": "q.block_state('inv:north') == 0",
+              "east": "q.block_state('inv:east') == 0",
+              "west": "q.block_state('inv:west') == 0",
+              "south": "q.block_state('inv:south') == 0",
+              "north_half": "q.block_state('inv:north') == 1",
+              "east_half": "q.block_state('inv:east') == 1",
+              "west_half": "q.block_state('inv:west') == 1",
+              "south_half": "q.block_state('inv:south') == 1"
+            }
+          },
+          "minecraft:material_instances": {
+            "*": {
+              "texture": "oil",
+              "render_method": "blend",
+              "face_dimming": false,
+              "ambient_occlusion": false
+            },
+            "up": {
+              "texture": "flowing_oil",
+              "render_method": "blend",
+              "face_dimming": false,
+              "ambient_occlusion": false
+            }
+          },
+          "minecraft:transformation": {
+            "rotation": [
+              0,
+              180,
+              0
+            ]
+          }
+        }
+      },
+      {
+        "condition": "q.block_state('csm:depth') == 1 && q.block_state('csm:direction') == 'west'",
+        "components": {
+          "minecraft:geometry": {
+            "identifier": "geometry.fluid.1",
+            "bone_visibility": {
+              "up": "q.block_state('inv:up') == 0",
+              "down": "q.block_state('inv:down') == 0",
+              "north": "q.block_state('inv:north') == 0",
+              "east": "q.block_state('inv:east') == 0",
+              "west": "q.block_state('inv:west') == 0",
+              "south": "q.block_state('inv:south') == 0",
+              "north_half": "q.block_state('inv:north') == 1",
+              "east_half": "q.block_state('inv:east') == 1",
+              "west_half": "q.block_state('inv:west') == 1",
+              "south_half": "q.block_state('inv:south') == 1"
+            }
+          },
+          "minecraft:material_instances": {
+            "*": {
+              "texture": "oil",
+              "render_method": "blend",
+              "face_dimming": false,
+              "ambient_occlusion": false
+            },
+            "up": {
+              "texture": "flowing_oil",
+              "render_method": "blend",
+              "face_dimming": false,
+              "ambient_occlusion": false
+            }
+          },
+          "minecraft:transformation": {
+            "rotation": [
+              0,
+              -90,
+              0
+            ]
+          }
+        }
+      },
+      {
+        "condition": "q.block_state('csm:depth') == 1 && q.block_state('csm:direction') == 'none'",
+        "components": {
+          "minecraft:geometry": {
+            "identifier": "geometry.fluid.1",
+            "bone_visibility": {
+              "up": "q.block_state('inv:up') == 0",
+              "down": "q.block_state('inv:down') == 0",
+              "north": "q.block_state('inv:north') == 0",
+              "east": "q.block_state('inv:east') == 0",
+              "west": "q.block_state('inv:west') == 0",
+              "south": "q.block_state('inv:south') == 0",
+              "north_half": "q.block_state('inv:north') == 1",
+              "east_half": "q.block_state('inv:east') == 1",
+              "west_half": "q.block_state('inv:west') == 1",
+              "south_half": "q.block_state('inv:south') == 1"
+            }
+          },
+          "minecraft:material_instances": {
+            "*": {
+              "texture": "oil",
+              "render_method": "blend",
+              "face_dimming": false,
+              "ambient_occlusion": false
+            }
+          }
+        }
+      },
+      {
+        "condition": "q.block_state('csm:depth') == 2 && q.block_state('csm:direction') == 'north'",
+        "components": {
+          "minecraft:geometry": {
+            "identifier": "geometry.fluid.2",
+            "bone_visibility": {
+              "up": "q.block_state('inv:up') == 0",
+              "down": "q.block_state('inv:down') == 0",
+              "north": "q.block_state('inv:north') == 0",
+              "east": "q.block_state('inv:east') == 0",
+              "west": "q.block_state('inv:west') == 0",
+              "south": "q.block_state('inv:south') == 0",
+              "north_half": "q.block_state('inv:north') == 1",
+              "east_half": "q.block_state('inv:east') == 1",
+              "west_half": "q.block_state('inv:west') == 1",
+              "south_half": "q.block_state('inv:south') == 1"
+            }
+          },
+          "minecraft:material_instances": {
+            "*": {
+              "texture": "oil",
+              "render_method": "blend",
+              "face_dimming": false,
+              "ambient_occlusion": false
+            },
+            "up": {
+              "texture": "flowing_oil",
+              "render_method": "blend",
+              "face_dimming": false,
+              "ambient_occlusion": false
+            }
+          }
+        }
+      },
+      {
+        "condition": "q.block_state('csm:depth') == 2 && q.block_state('csm:direction') == 'east'",
+        "components": {
+          "minecraft:geometry": {
+            "identifier": "geometry.fluid.2",
+            "bone_visibility": {
+              "up": "q.block_state('inv:up') == 0",
+              "down": "q.block_state('inv:down') == 0",
+              "north": "q.block_state('inv:north') == 0",
+              "east": "q.block_state('inv:east') == 0",
+              "west": "q.block_state('inv:west') == 0",
+              "south": "q.block_state('inv:south') == 0",
+              "north_half": "q.block_state('inv:north') == 1",
+              "east_half": "q.block_state('inv:east') == 1",
+              "west_half": "q.block_state('inv:west') == 1",
+              "south_half": "q.block_state('inv:south') == 1"
+            }
+          },
+          "minecraft:material_instances": {
+            "*": {
+              "texture": "oil",
+              "render_method": "blend",
+              "face_dimming": false,
+              "ambient_occlusion": false
+            },
+            "up": {
+              "texture": "flowing_oil",
+              "render_method": "blend",
+              "face_dimming": false,
+              "ambient_occlusion": false
+            }
+          },
+          "minecraft:transformation": {
+            "rotation": [
+              0,
+              90,
+              0
+            ]
+          }
+        }
+      },
+      {
+        "condition": "q.block_state('csm:depth') == 2 && q.block_state('csm:direction') == 'south'",
+        "components": {
+          "minecraft:geometry": {
+            "identifier": "geometry.fluid.2",
+            "bone_visibility": {
+              "up": "q.block_state('inv:up') == 0",
+              "down": "q.block_state('inv:down') == 0",
+              "north": "q.block_state('inv:north') == 0",
+              "east": "q.block_state('inv:east') == 0",
+              "west": "q.block_state('inv:west') == 0",
+              "south": "q.block_state('inv:south') == 0",
+              "north_half": "q.block_state('inv:north') == 1",
+              "east_half": "q.block_state('inv:east') == 1",
+              "west_half": "q.block_state('inv:west') == 1",
+              "south_half": "q.block_state('inv:south') == 1"
+            }
+          },
+          "minecraft:material_instances": {
+            "*": {
+              "texture": "oil",
+              "render_method": "blend",
+              "face_dimming": false,
+              "ambient_occlusion": false
+            },
+            "up": {
+              "texture": "flowing_oil",
+              "render_method": "blend",
+              "face_dimming": false,
+              "ambient_occlusion": false
+            }
+          },
+          "minecraft:transformation": {
+            "rotation": [
+              0,
+              180,
+              0
+            ]
+          }
+        }
+      },
+      {
+        "condition": "q.block_state('csm:depth') == 2 && q.block_state('csm:direction') == 'west'",
+        "components": {
+          "minecraft:geometry": {
+            "identifier": "geometry.fluid.2",
+            "bone_visibility": {
+              "up": "q.block_state('inv:up') == 0",
+              "down": "q.block_state('inv:down') == 0",
+              "north": "q.block_state('inv:north') == 0",
+              "east": "q.block_state('inv:east') == 0",
+              "west": "q.block_state('inv:west') == 0",
+              "south": "q.block_state('inv:south') == 0",
+              "north_half": "q.block_state('inv:north') == 1",
+              "east_half": "q.block_state('inv:east') == 1",
+              "west_half": "q.block_state('inv:west') == 1",
+              "south_half": "q.block_state('inv:south') == 1"
+            }
+          },
+          "minecraft:material_instances": {
+            "*": {
+              "texture": "oil",
+              "render_method": "blend",
+              "face_dimming": false,
+              "ambient_occlusion": false
+            },
+            "up": {
+              "texture": "flowing_oil",
+              "render_method": "blend",
+              "face_dimming": false,
+              "ambient_occlusion": false
+            }
+          },
+          "minecraft:transformation": {
+            "rotation": [
+              0,
+              -90,
+              0
+            ]
+          }
+        }
+      },
+      {
+        "condition": "q.block_state('csm:depth') == 2 && q.block_state('csm:direction') == 'none'",
+        "components": {
+          "minecraft:geometry": {
+            "identifier": "geometry.fluid.2",
+            "bone_visibility": {
+              "up": "q.block_state('inv:up') == 0",
+              "down": "q.block_state('inv:down') == 0",
+              "north": "q.block_state('inv:north') == 0",
+              "east": "q.block_state('inv:east') == 0",
+              "west": "q.block_state('inv:west') == 0",
+              "south": "q.block_state('inv:south') == 0",
+              "north_half": "q.block_state('inv:north') == 1",
+              "east_half": "q.block_state('inv:east') == 1",
+              "west_half": "q.block_state('inv:west') == 1",
+              "south_half": "q.block_state('inv:south') == 1"
+            }
+          },
+          "minecraft:material_instances": {
+            "*": {
+              "texture": "oil",
+              "render_method": "blend",
+              "face_dimming": false,
+              "ambient_occlusion": false
+            }
+          }
+        }
+      },
+      {
+        "condition": "q.block_state('csm:depth') == 3 && q.block_state('csm:direction') == 'north'",
+        "components": {
+          "minecraft:geometry": {
+            "identifier": "geometry.fluid.3",
+            "bone_visibility": {
+              "up": "q.block_state('inv:up') == 0",
+              "down": "q.block_state('inv:down') == 0",
+              "north": "q.block_state('inv:north') == 0",
+              "east": "q.block_state('inv:east') == 0",
+              "west": "q.block_state('inv:west') == 0",
+              "south": "q.block_state('inv:south') == 0",
+              "north_half": "q.block_state('inv:north') == 1",
+              "east_half": "q.block_state('inv:east') == 1",
+              "west_half": "q.block_state('inv:west') == 1",
+              "south_half": "q.block_state('inv:south') == 1"
+            }
+          },
+          "minecraft:material_instances": {
+            "*": {
+              "texture": "oil",
+              "render_method": "blend",
+              "face_dimming": false,
+              "ambient_occlusion": false
+            },
+            "up": {
+              "texture": "flowing_oil",
+              "render_method": "blend",
+              "face_dimming": false,
+              "ambient_occlusion": false
+            }
+          }
+        }
+      },
+      {
+        "condition": "q.block_state('csm:depth') == 3 && q.block_state('csm:direction') == 'east'",
+        "components": {
+          "minecraft:geometry": {
+            "identifier": "geometry.fluid.3",
+            "bone_visibility": {
+              "up": "q.block_state('inv:up') == 0",
+              "down": "q.block_state('inv:down') == 0",
+              "north": "q.block_state('inv:north') == 0",
+              "east": "q.block_state('inv:east') == 0",
+              "west": "q.block_state('inv:west') == 0",
+              "south": "q.block_state('inv:south') == 0",
+              "north_half": "q.block_state('inv:north') == 1",
+              "east_half": "q.block_state('inv:east') == 1",
+              "west_half": "q.block_state('inv:west') == 1",
+              "south_half": "q.block_state('inv:south') == 1"
+            }
+          },
+          "minecraft:material_instances": {
+            "*": {
+              "texture": "oil",
+              "render_method": "blend",
+              "face_dimming": false,
+              "ambient_occlusion": false
+            },
+            "up": {
+              "texture": "flowing_oil",
+              "render_method": "blend",
+              "face_dimming": false,
+              "ambient_occlusion": false
+            }
+          },
+          "minecraft:transformation": {
+            "rotation": [
+              0,
+              90,
+              0
+            ]
+          }
+        }
+      },
+      {
+        "condition": "q.block_state('csm:depth') == 3 && q.block_state('csm:direction') == 'south'",
+        "components": {
+          "minecraft:geometry": {
+            "identifier": "geometry.fluid.3",
+            "bone_visibility": {
+              "up": "q.block_state('inv:up') == 0",
+              "down": "q.block_state('inv:down') == 0",
+              "north": "q.block_state('inv:north') == 0",
+              "east": "q.block_state('inv:east') == 0",
+              "west": "q.block_state('inv:west') == 0",
+              "south": "q.block_state('inv:south') == 0",
+              "north_half": "q.block_state('inv:north') == 1",
+              "east_half": "q.block_state('inv:east') == 1",
+              "west_half": "q.block_state('inv:west') == 1",
+              "south_half": "q.block_state('inv:south') == 1"
+            }
+          },
+          "minecraft:material_instances": {
+            "*": {
+              "texture": "oil",
+              "render_method": "blend",
+              "face_dimming": false,
+              "ambient_occlusion": false
+            },
+            "up": {
+              "texture": "flowing_oil",
+              "render_method": "blend",
+              "face_dimming": false,
+              "ambient_occlusion": false
+            }
+          },
+          "minecraft:transformation": {
+            "rotation": [
+              0,
+              180,
+              0
+            ]
+          }
+        }
+      },
+      {
+        "condition": "q.block_state('csm:depth') == 3 && q.block_state('csm:direction') == 'west'",
+        "components": {
+          "minecraft:geometry": {
+            "identifier": "geometry.fluid.3",
+            "bone_visibility": {
+              "up": "q.block_state('inv:up') == 0",
+              "down": "q.block_state('inv:down') == 0",
+              "north": "q.block_state('inv:north') == 0",
+              "east": "q.block_state('inv:east') == 0",
+              "west": "q.block_state('inv:west') == 0",
+              "south": "q.block_state('inv:south') == 0",
+              "north_half": "q.block_state('inv:north') == 1",
+              "east_half": "q.block_state('inv:east') == 1",
+              "west_half": "q.block_state('inv:west') == 1",
+              "south_half": "q.block_state('inv:south') == 1"
+            }
+          },
+          "minecraft:material_instances": {
+            "*": {
+              "texture": "oil",
+              "render_method": "blend",
+              "face_dimming": false,
+              "ambient_occlusion": false
+            },
+            "up": {
+              "texture": "flowing_oil",
+              "render_method": "blend",
+              "face_dimming": false,
+              "ambient_occlusion": false
+            }
+          },
+          "minecraft:transformation": {
+            "rotation": [
+              0,
+              -90,
+              0
+            ]
+          }
+        }
+      },
+      {
+        "condition": "q.block_state('csm:depth') == 3 && q.block_state('csm:direction') == 'none'",
+        "components": {
+          "minecraft:geometry": {
+            "identifier": "geometry.fluid.3",
+            "bone_visibility": {
+              "up": "q.block_state('inv:up') == 0",
+              "down": "q.block_state('inv:down') == 0",
+              "north": "q.block_state('inv:north') == 0",
+              "east": "q.block_state('inv:east') == 0",
+              "west": "q.block_state('inv:west') == 0",
+              "south": "q.block_state('inv:south') == 0",
+              "north_half": "q.block_state('inv:north') == 1",
+              "east_half": "q.block_state('inv:east') == 1",
+              "west_half": "q.block_state('inv:west') == 1",
+              "south_half": "q.block_state('inv:south') == 1"
+            }
+          },
+          "minecraft:material_instances": {
+            "*": {
+              "texture": "oil",
+              "render_method": "blend",
+              "face_dimming": false,
+              "ambient_occlusion": false
+            }
+          }
+        }
+      },
+      {
+        "condition": "q.block_state('csm:depth') == 4 && q.block_state('csm:direction') == 'north'",
+        "components": {
+          "minecraft:geometry": {
+            "identifier": "geometry.fluid.4",
+            "bone_visibility": {
+              "up": "q.block_state('inv:up') == 0",
+              "down": "q.block_state('inv:down') == 0",
+              "north": "q.block_state('inv:north') == 0",
+              "east": "q.block_state('inv:east') == 0",
+              "west": "q.block_state('inv:west') == 0",
+              "south": "q.block_state('inv:south') == 0",
+              "north_half": "q.block_state('inv:north') == 1",
+              "east_half": "q.block_state('inv:east') == 1",
+              "west_half": "q.block_state('inv:west') == 1",
+              "south_half": "q.block_state('inv:south') == 1"
+            }
+          },
+          "minecraft:material_instances": {
+            "*": {
+              "texture": "oil",
+              "render_method": "blend",
+              "face_dimming": false,
+              "ambient_occlusion": false
+            },
+            "up": {
+              "texture": "flowing_oil",
+              "render_method": "blend",
+              "face_dimming": false,
+              "ambient_occlusion": false
+            }
+          }
+        }
+      },
+      {
+        "condition": "q.block_state('csm:depth') == 4 && q.block_state('csm:direction') == 'east'",
+        "components": {
+          "minecraft:geometry": {
+            "identifier": "geometry.fluid.4",
+            "bone_visibility": {
+              "up": "q.block_state('inv:up') == 0",
+              "down": "q.block_state('inv:down') == 0",
+              "north": "q.block_state('inv:north') == 0",
+              "east": "q.block_state('inv:east') == 0",
+              "west": "q.block_state('inv:west') == 0",
+              "south": "q.block_state('inv:south') == 0",
+              "north_half": "q.block_state('inv:north') == 1",
+              "east_half": "q.block_state('inv:east') == 1",
+              "west_half": "q.block_state('inv:west') == 1",
+              "south_half": "q.block_state('inv:south') == 1"
+            }
+          },
+          "minecraft:material_instances": {
+            "*": {
+              "texture": "oil",
+              "render_method": "blend",
+              "face_dimming": false,
+              "ambient_occlusion": false
+            },
+            "up": {
+              "texture": "flowing_oil",
+              "render_method": "blend",
+              "face_dimming": false,
+              "ambient_occlusion": false
+            }
+          },
+          "minecraft:transformation": {
+            "rotation": [
+              0,
+              90,
+              0
+            ]
+          }
+        }
+      },
+      {
+        "condition": "q.block_state('csm:depth') == 4 && q.block_state('csm:direction') == 'south'",
+        "components": {
+          "minecraft:geometry": {
+            "identifier": "geometry.fluid.4",
+            "bone_visibility": {
+              "up": "q.block_state('inv:up') == 0",
+              "down": "q.block_state('inv:down') == 0",
+              "north": "q.block_state('inv:north') == 0",
+              "east": "q.block_state('inv:east') == 0",
+              "west": "q.block_state('inv:west') == 0",
+              "south": "q.block_state('inv:south') == 0",
+              "north_half": "q.block_state('inv:north') == 1",
+              "east_half": "q.block_state('inv:east') == 1",
+              "west_half": "q.block_state('inv:west') == 1",
+              "south_half": "q.block_state('inv:south') == 1"
+            }
+          },
+          "minecraft:material_instances": {
+            "*": {
+              "texture": "oil",
+              "render_method": "blend",
+              "face_dimming": false,
+              "ambient_occlusion": false
+            },
+            "up": {
+              "texture": "flowing_oil",
+              "render_method": "blend",
+              "face_dimming": false,
+              "ambient_occlusion": false
+            }
+          },
+          "minecraft:transformation": {
+            "rotation": [
+              0,
+              180,
+              0
+            ]
+          }
+        }
+      },
+      {
+        "condition": "q.block_state('csm:depth') == 4 && q.block_state('csm:direction') == 'west'",
+        "components": {
+          "minecraft:geometry": {
+            "identifier": "geometry.fluid.4",
+            "bone_visibility": {
+              "up": "q.block_state('inv:up') == 0",
+              "down": "q.block_state('inv:down') == 0",
+              "north": "q.block_state('inv:north') == 0",
+              "east": "q.block_state('inv:east') == 0",
+              "west": "q.block_state('inv:west') == 0",
+              "south": "q.block_state('inv:south') == 0",
+              "north_half": "q.block_state('inv:north') == 1",
+              "east_half": "q.block_state('inv:east') == 1",
+              "west_half": "q.block_state('inv:west') == 1",
+              "south_half": "q.block_state('inv:south') == 1"
+            }
+          },
+          "minecraft:material_instances": {
+            "*": {
+              "texture": "oil",
+              "render_method": "blend",
+              "face_dimming": false,
+              "ambient_occlusion": false
+            },
+            "up": {
+              "texture": "flowing_oil",
+              "render_method": "blend",
+              "face_dimming": false,
+              "ambient_occlusion": false
+            }
+          },
+          "minecraft:transformation": {
+            "rotation": [
+              0,
+              -90,
+              0
+            ]
+          }
+        }
+      },
+      {
+        "condition": "q.block_state('csm:depth') == 4 && q.block_state('csm:direction') == 'none'",
+        "components": {
+          "minecraft:geometry": {
+            "identifier": "geometry.fluid.4",
+            "bone_visibility": {
+              "up": "q.block_state('inv:up') == 0",
+              "down": "q.block_state('inv:down') == 0",
+              "north": "q.block_state('inv:north') == 0",
+              "east": "q.block_state('inv:east') == 0",
+              "west": "q.block_state('inv:west') == 0",
+              "south": "q.block_state('inv:south') == 0",
+              "north_half": "q.block_state('inv:north') == 1",
+              "east_half": "q.block_state('inv:east') == 1",
+              "west_half": "q.block_state('inv:west') == 1",
+              "south_half": "q.block_state('inv:south') == 1"
+            }
+          },
+          "minecraft:material_instances": {
+            "*": {
+              "texture": "oil",
+              "render_method": "blend",
+              "face_dimming": false,
+              "ambient_occlusion": false
+            }
+          }
+        }
+      },
+      {
+        "condition": "q.block_state('csm:depth') == 5 && q.block_state('csm:direction') == 'north'",
+        "components": {
+          "minecraft:geometry": {
+            "identifier": "geometry.fluid.6",
+            "bone_visibility": {
+              "up": "q.block_state('inv:up') == 0",
+              "down": "q.block_state('inv:down') == 0",
+              "north": "q.block_state('inv:north') == 0",
+              "east": "q.block_state('inv:east') == 0",
+              "west": "q.block_state('inv:west') == 0",
+              "south": "q.block_state('inv:south') == 0",
+              "north_half": "q.block_state('inv:north') == 1",
+              "east_half": "q.block_state('inv:east') == 1",
+              "west_half": "q.block_state('inv:west') == 1",
+              "south_half": "q.block_state('inv:south') == 1"
+            }
+          },
+          "minecraft:material_instances": {
+            "*": {
+              "texture": "oil",
+              "render_method": "blend",
+              "face_dimming": false,
+              "ambient_occlusion": false
+            },
+            "up": {
+              "texture": "flowing_oil",
+              "render_method": "blend",
+              "face_dimming": false,
+              "ambient_occlusion": false
+            }
+          }
+        }
+      },
+      {
+        "condition": "q.block_state('csm:depth') == 5 && q.block_state('csm:direction') == 'east'",
+        "components": {
+          "minecraft:geometry": {
+            "identifier": "geometry.fluid.6",
+            "bone_visibility": {
+              "up": "q.block_state('inv:up') == 0",
+              "down": "q.block_state('inv:down') == 0",
+              "north": "q.block_state('inv:north') == 0",
+              "east": "q.block_state('inv:east') == 0",
+              "west": "q.block_state('inv:west') == 0",
+              "south": "q.block_state('inv:south') == 0",
+              "north_half": "q.block_state('inv:north') == 1",
+              "east_half": "q.block_state('inv:east') == 1",
+              "west_half": "q.block_state('inv:west') == 1",
+              "south_half": "q.block_state('inv:south') == 1"
+            }
+          },
+          "minecraft:material_instances": {
+            "*": {
+              "texture": "oil",
+              "render_method": "blend",
+              "face_dimming": false,
+              "ambient_occlusion": false
+            },
+            "up": {
+              "texture": "flowing_oil",
+              "render_method": "blend",
+              "face_dimming": false,
+              "ambient_occlusion": false
+            }
+          },
+          "minecraft:transformation": {
+            "rotation": [
+              0,
+              90,
+              0
+            ]
+          }
+        }
+      },
+      {
+        "condition": "q.block_state('csm:depth') == 5 && q.block_state('csm:direction') == 'south'",
+        "components": {
+          "minecraft:geometry": {
+            "identifier": "geometry.fluid.6",
+            "bone_visibility": {
+              "up": "q.block_state('inv:up') == 0",
+              "down": "q.block_state('inv:down') == 0",
+              "north": "q.block_state('inv:north') == 0",
+              "east": "q.block_state('inv:east') == 0",
+              "west": "q.block_state('inv:west') == 0",
+              "south": "q.block_state('inv:south') == 0",
+              "north_half": "q.block_state('inv:north') == 1",
+              "east_half": "q.block_state('inv:east') == 1",
+              "west_half": "q.block_state('inv:west') == 1",
+              "south_half": "q.block_state('inv:south') == 1"
+            }
+          },
+          "minecraft:material_instances": {
+            "*": {
+              "texture": "oil",
+              "render_method": "blend",
+              "face_dimming": false,
+              "ambient_occlusion": false
+            },
+            "up": {
+              "texture": "flowing_oil",
+              "render_method": "blend",
+              "face_dimming": false,
+              "ambient_occlusion": false
+            }
+          },
+          "minecraft:transformation": {
+            "rotation": [
+              0,
+              180,
+              0
+            ]
+          }
+        }
+      },
+      {
+        "condition": "q.block_state('csm:depth') == 5 && q.block_state('csm:direction') == 'west'",
+        "components": {
+          "minecraft:geometry": {
+            "identifier": "geometry.fluid.6",
+            "bone_visibility": {
+              "up": "q.block_state('inv:up') == 0",
+              "down": "q.block_state('inv:down') == 0",
+              "north": "q.block_state('inv:north') == 0",
+              "east": "q.block_state('inv:east') == 0",
+              "west": "q.block_state('inv:west') == 0",
+              "south": "q.block_state('inv:south') == 0",
+              "north_half": "q.block_state('inv:north') == 1",
+              "east_half": "q.block_state('inv:east') == 1",
+              "west_half": "q.block_state('inv:west') == 1",
+              "south_half": "q.block_state('inv:south') == 1"
+            }
+          },
+          "minecraft:material_instances": {
+            "*": {
+              "texture": "oil",
+              "render_method": "blend",
+              "face_dimming": false,
+              "ambient_occlusion": false
+            },
+            "up": {
+              "texture": "flowing_oil",
+              "render_method": "blend",
+              "face_dimming": false,
+              "ambient_occlusion": false
+            }
+          },
+          "minecraft:transformation": {
+            "rotation": [
+              0,
+              -90,
+              0
+            ]
+          }
+        }
+      },
+      {
+        "condition": "q.block_state('csm:depth') == 5 && q.block_state('csm:direction') == 'none'",
+        "components": {
+          "minecraft:geometry": {
+            "identifier": "geometry.fluid.6",
+            "bone_visibility": {
+              "up": "q.block_state('inv:up') == 0",
+              "down": "q.block_state('inv:down') == 0",
+              "north": "q.block_state('inv:north') == 0",
+              "east": "q.block_state('inv:east') == 0",
+              "west": "q.block_state('inv:west') == 0",
+              "south": "q.block_state('inv:south') == 0",
+              "north_half": "q.block_state('inv:north') == 1",
+              "east_half": "q.block_state('inv:east') == 1",
+              "west_half": "q.block_state('inv:west') == 1",
+              "south_half": "q.block_state('inv:south') == 1"
+            }
+          },
+          "minecraft:material_instances": {
+            "*": {
+              "texture": "oil",
+              "render_method": "blend",
+              "face_dimming": false,
+              "ambient_occlusion": false
+            }
+          }
+        }
+      },
+      {
+        "condition": "q.block_state('csm:depth') == 6 && q.block_state('csm:direction') == 'north'",
+        "components": {
+          "minecraft:geometry": {
+            "identifier": "geometry.fluid.7",
+            "bone_visibility": {
+              "up": "q.block_state('inv:up') == 0",
+              "down": "q.block_state('inv:down') == 0",
+              "north": "q.block_state('inv:north') == 0",
+              "east": "q.block_state('inv:east') == 0",
+              "west": "q.block_state('inv:west') == 0",
+              "south": "q.block_state('inv:south') == 0",
+              "north_half": "q.block_state('inv:north') == 1",
+              "east_half": "q.block_state('inv:east') == 1",
+              "west_half": "q.block_state('inv:west') == 1",
+              "south_half": "q.block_state('inv:south') == 1"
+            }
+          },
+          "minecraft:material_instances": {
+            "*": {
+              "texture": "oil",
+              "render_method": "blend",
+              "face_dimming": false,
+              "ambient_occlusion": false
+            },
+            "up": {
+              "texture": "flowing_oil",
+              "render_method": "blend",
+              "face_dimming": false,
+              "ambient_occlusion": false
+            }
+          }
+        }
+      },
+      {
+        "condition": "q.block_state('csm:depth') == 6 && q.block_state('csm:direction') == 'east'",
+        "components": {
+          "minecraft:geometry": {
+            "identifier": "geometry.fluid.7",
+            "bone_visibility": {
+              "up": "q.block_state('inv:up') == 0",
+              "down": "q.block_state('inv:down') == 0",
+              "north": "q.block_state('inv:north') == 0",
+              "east": "q.block_state('inv:east') == 0",
+              "west": "q.block_state('inv:west') == 0",
+              "south": "q.block_state('inv:south') == 0",
+              "north_half": "q.block_state('inv:north') == 1",
+              "east_half": "q.block_state('inv:east') == 1",
+              "west_half": "q.block_state('inv:west') == 1",
+              "south_half": "q.block_state('inv:south') == 1"
+            }
+          },
+          "minecraft:material_instances": {
+            "*": {
+              "texture": "oil",
+              "render_method": "blend",
+              "face_dimming": false,
+              "ambient_occlusion": false
+            },
+            "up": {
+              "texture": "flowing_oil",
+              "render_method": "blend",
+              "face_dimming": false,
+              "ambient_occlusion": false
+            }
+          },
+          "minecraft:transformation": {
+            "rotation": [
+              0,
+              90,
+              0
+            ]
+          }
+        }
+      },
+      {
+        "condition": "q.block_state('csm:depth') == 6 && q.block_state('csm:direction') == 'south'",
+        "components": {
+          "minecraft:geometry": {
+            "identifier": "geometry.fluid.7",
+            "bone_visibility": {
+              "up": "q.block_state('inv:up') == 0",
+              "down": "q.block_state('inv:down') == 0",
+              "north": "q.block_state('inv:north') == 0",
+              "east": "q.block_state('inv:east') == 0",
+              "west": "q.block_state('inv:west') == 0",
+              "south": "q.block_state('inv:south') == 0",
+              "north_half": "q.block_state('inv:north') == 1",
+              "east_half": "q.block_state('inv:east') == 1",
+              "west_half": "q.block_state('inv:west') == 1",
+              "south_half": "q.block_state('inv:south') == 1"
+            }
+          },
+          "minecraft:material_instances": {
+            "*": {
+              "texture": "oil",
+              "render_method": "blend",
+              "face_dimming": false,
+              "ambient_occlusion": false
+            },
+            "up": {
+              "texture": "flowing_oil",
+              "render_method": "blend",
+              "face_dimming": false,
+              "ambient_occlusion": false
+            }
+          },
+          "minecraft:transformation": {
+            "rotation": [
+              0,
+              180,
+              0
+            ]
+          }
+        }
+      },
+      {
+        "condition": "q.block_state('csm:depth') == 6 && q.block_state('csm:direction') == 'west'",
+        "components": {
+          "minecraft:geometry": {
+            "identifier": "geometry.fluid.7",
+            "bone_visibility": {
+              "up": "q.block_state('inv:up') == 0",
+              "down": "q.block_state('inv:down') == 0",
+              "north": "q.block_state('inv:north') == 0",
+              "east": "q.block_state('inv:east') == 0",
+              "west": "q.block_state('inv:west') == 0",
+              "south": "q.block_state('inv:south') == 0",
+              "north_half": "q.block_state('inv:north') == 1",
+              "east_half": "q.block_state('inv:east') == 1",
+              "west_half": "q.block_state('inv:west') == 1",
+              "south_half": "q.block_state('inv:south') == 1"
+            }
+          },
+          "minecraft:material_instances": {
+            "*": {
+              "texture": "oil",
+              "render_method": "blend",
+              "face_dimming": false,
+              "ambient_occlusion": false
+            },
+            "up": {
+              "texture": "flowing_oil",
+              "render_method": "blend",
+              "face_dimming": false,
+              "ambient_occlusion": false
+            }
+          },
+          "minecraft:transformation": {
+            "rotation": [
+              0,
+              -90,
+              0
+            ]
+          }
+        }
+      },
+      {
+        "condition": "q.block_state('csm:depth') == 6 && q.block_state('csm:direction') == 'none'",
+        "components": {
+          "minecraft:geometry": {
+            "identifier": "geometry.fluid.7",
+            "bone_visibility": {
+              "up": "q.block_state('inv:up') == 0",
+              "down": "q.block_state('inv:down') == 0",
+              "north": "q.block_state('inv:north') == 0",
+              "east": "q.block_state('inv:east') == 0",
+              "west": "q.block_state('inv:west') == 0",
+              "south": "q.block_state('inv:south') == 0",
+              "north_half": "q.block_state('inv:north') == 1",
+              "east_half": "q.block_state('inv:east') == 1",
+              "west_half": "q.block_state('inv:west') == 1",
+              "south_half": "q.block_state('inv:south') == 1"
+            }
+          },
+          "minecraft:material_instances": {
+            "*": {
+              "texture": "oil",
+              "render_method": "blend",
+              "face_dimming": false,
+              "ambient_occlusion": false
+            }
+          }
+        }
+      },
+      {
+        "condition": "q.block_state('csm:depth') == 7 && q.block_state('csm:direction') == 'north'",
+        "components": {
+          "minecraft:geometry": {
+            "identifier": "geometry.fluid.8",
+            "bone_visibility": {
+              "up": "q.block_state('inv:up') == 0",
+              "down": "q.block_state('inv:down') == 0",
+              "north": "q.block_state('inv:north') == 0",
+              "east": "q.block_state('inv:east') == 0",
+              "west": "q.block_state('inv:west') == 0",
+              "south": "q.block_state('inv:south') == 0",
+              "north_half": "q.block_state('inv:north') == 1",
+              "east_half": "q.block_state('inv:east') == 1",
+              "west_half": "q.block_state('inv:west') == 1",
+              "south_half": "q.block_state('inv:south') == 1"
+            }
+          },
+          "minecraft:material_instances": {
+            "*": {
+              "texture": "oil",
+              "render_method": "blend",
+              "face_dimming": false,
+              "ambient_occlusion": false
+            },
+            "up": {
+              "texture": "flowing_oil",
+              "render_method": "blend",
+              "face_dimming": false,
+              "ambient_occlusion": false
+            }
+          }
+        }
+      },
+      {
+        "condition": "q.block_state('csm:depth') == 7 && q.block_state('csm:direction') == 'east'",
+        "components": {
+          "minecraft:geometry": {
+            "identifier": "geometry.fluid.8",
+            "bone_visibility": {
+              "up": "q.block_state('inv:up') == 0",
+              "down": "q.block_state('inv:down') == 0",
+              "north": "q.block_state('inv:north') == 0",
+              "east": "q.block_state('inv:east') == 0",
+              "west": "q.block_state('inv:west') == 0",
+              "south": "q.block_state('inv:south') == 0",
+              "north_half": "q.block_state('inv:north') == 1",
+              "east_half": "q.block_state('inv:east') == 1",
+              "west_half": "q.block_state('inv:west') == 1",
+              "south_half": "q.block_state('inv:south') == 1"
+            }
+          },
+          "minecraft:material_instances": {
+            "*": {
+              "texture": "oil",
+              "render_method": "blend",
+              "face_dimming": false,
+              "ambient_occlusion": false
+            },
+            "up": {
+              "texture": "flowing_oil",
+              "render_method": "blend",
+              "face_dimming": false,
+              "ambient_occlusion": false
+            }
+          },
+          "minecraft:transformation": {
+            "rotation": [
+              0,
+              90,
+              0
+            ]
+          }
+        }
+      },
+      {
+        "condition": "q.block_state('csm:depth') == 7 && q.block_state('csm:direction') == 'south'",
+        "components": {
+          "minecraft:geometry": {
+            "identifier": "geometry.fluid.8",
+            "bone_visibility": {
+              "up": "q.block_state('inv:up') == 0",
+              "down": "q.block_state('inv:down') == 0",
+              "north": "q.block_state('inv:north') == 0",
+              "east": "q.block_state('inv:east') == 0",
+              "west": "q.block_state('inv:west') == 0",
+              "south": "q.block_state('inv:south') == 0",
+              "north_half": "q.block_state('inv:north') == 1",
+              "east_half": "q.block_state('inv:east') == 1",
+              "west_half": "q.block_state('inv:west') == 1",
+              "south_half": "q.block_state('inv:south') == 1"
+            }
+          },
+          "minecraft:material_instances": {
+            "*": {
+              "texture": "oil",
+              "render_method": "blend",
+              "face_dimming": false,
+              "ambient_occlusion": false
+            },
+            "up": {
+              "texture": "flowing_oil",
+              "render_method": "blend",
+              "face_dimming": false,
+              "ambient_occlusion": false
+            }
+          },
+          "minecraft:transformation": {
+            "rotation": [
+              0,
+              180,
+              0
+            ]
+          }
+        }
+      },
+      {
+        "condition": "q.block_state('csm:depth') == 7 && q.block_state('csm:direction') == 'west'",
+        "components": {
+          "minecraft:geometry": {
+            "identifier": "geometry.fluid.8",
+            "bone_visibility": {
+              "up": "q.block_state('inv:up') == 0",
+              "down": "q.block_state('inv:down') == 0",
+              "north": "q.block_state('inv:north') == 0",
+              "east": "q.block_state('inv:east') == 0",
+              "west": "q.block_state('inv:west') == 0",
+              "south": "q.block_state('inv:south') == 0",
+              "north_half": "q.block_state('inv:north') == 1",
+              "east_half": "q.block_state('inv:east') == 1",
+              "west_half": "q.block_state('inv:west') == 1",
+              "south_half": "q.block_state('inv:south') == 1"
+            }
+          },
+          "minecraft:material_instances": {
+            "*": {
+              "texture": "oil",
+              "render_method": "blend",
+              "face_dimming": false,
+              "ambient_occlusion": false
+            },
+            "up": {
+              "texture": "flowing_oil",
+              "render_method": "blend",
+              "face_dimming": false,
+              "ambient_occlusion": false
+            }
+          },
+          "minecraft:transformation": {
+            "rotation": [
+              0,
+              -90,
+              0
+            ]
+          }
+        }
+      },
+      {
+        "condition": "q.block_state('csm:depth') == 7 && q.block_state('csm:direction') == 'none'",
+        "components": {
+          "minecraft:geometry": {
+            "identifier": "geometry.fluid.8",
+            "bone_visibility": {
+              "up": "q.block_state('inv:up') == 0",
+              "down": "q.block_state('inv:down') == 0",
+              "north": "q.block_state('inv:north') == 0",
+              "east": "q.block_state('inv:east') == 0",
+              "west": "q.block_state('inv:west') == 0",
+              "south": "q.block_state('inv:south') == 0",
+              "north_half": "q.block_state('inv:north') == 1",
+              "east_half": "q.block_state('inv:east') == 1",
+              "west_half": "q.block_state('inv:west') == 1",
+              "south_half": "q.block_state('inv:south') == 1"
+            }
+          },
+          "minecraft:material_instances": {
+            "*": {
+              "texture": "oil",
+              "render_method": "blend",
+              "face_dimming": false,
+              "ambient_occlusion": false
+            }
+          }
+        }
+      },
+      {
+        "condition": "q.block_state('csm:depth') == 8 && q.block_state('csm:direction') == 'north'",
+        "components": {
+          "minecraft:geometry": {
+            "identifier": "geometry.fluid.8",
+            "bone_visibility": {
+              "up": "q.block_state('inv:up') == 0",
+              "down": "q.block_state('inv:down') == 0",
+              "north": "q.block_state('inv:north') == 0",
+              "east": "q.block_state('inv:east') == 0",
+              "west": "q.block_state('inv:west') == 0",
+              "south": "q.block_state('inv:south') == 0",
+              "north_half": "q.block_state('inv:north') == 1",
+              "east_half": "q.block_state('inv:east') == 1",
+              "west_half": "q.block_state('inv:west') == 1",
+              "south_half": "q.block_state('inv:south') == 1"
+            }
+          },
+          "minecraft:material_instances": {
+            "*": {
+              "texture": "oil",
+              "render_method": "blend",
+              "face_dimming": false,
+              "ambient_occlusion": false
+            },
+            "up": {
+              "texture": "flowing_oil",
+              "render_method": "blend",
+              "face_dimming": false,
+              "ambient_occlusion": false
+            }
+          }
+        }
+      },
+      {
+        "condition": "q.block_state('csm:depth') == 8 && q.block_state('csm:direction') == 'east'",
+        "components": {
+          "minecraft:geometry": {
+            "identifier": "geometry.fluid.8",
+            "bone_visibility": {
+              "up": "q.block_state('inv:up') == 0",
+              "down": "q.block_state('inv:down') == 0",
+              "north": "q.block_state('inv:north') == 0",
+              "east": "q.block_state('inv:east') == 0",
+              "west": "q.block_state('inv:west') == 0",
+              "south": "q.block_state('inv:south') == 0",
+              "north_half": "q.block_state('inv:north') == 1",
+              "east_half": "q.block_state('inv:east') == 1",
+              "west_half": "q.block_state('inv:west') == 1",
+              "south_half": "q.block_state('inv:south') == 1"
+            }
+          },
+          "minecraft:material_instances": {
+            "*": {
+              "texture": "oil",
+              "render_method": "blend",
+              "face_dimming": false,
+              "ambient_occlusion": false
+            },
+            "up": {
+              "texture": "flowing_oil",
+              "render_method": "blend",
+              "face_dimming": false,
+              "ambient_occlusion": false
+            }
+          },
+          "minecraft:transformation": {
+            "rotation": [
+              0,
+              90,
+              0
+            ]
+          }
+        }
+      },
+      {
+        "condition": "q.block_state('csm:depth') == 8 && q.block_state('csm:direction') == 'south'",
+        "components": {
+          "minecraft:geometry": {
+            "identifier": "geometry.fluid.8",
+            "bone_visibility": {
+              "up": "q.block_state('inv:up') == 0",
+              "down": "q.block_state('inv:down') == 0",
+              "north": "q.block_state('inv:north') == 0",
+              "east": "q.block_state('inv:east') == 0",
+              "west": "q.block_state('inv:west') == 0",
+              "south": "q.block_state('inv:south') == 0",
+              "north_half": "q.block_state('inv:north') == 1",
+              "east_half": "q.block_state('inv:east') == 1",
+              "west_half": "q.block_state('inv:west') == 1",
+              "south_half": "q.block_state('inv:south') == 1"
+            }
+          },
+          "minecraft:material_instances": {
+            "*": {
+              "texture": "oil",
+              "render_method": "blend",
+              "face_dimming": false,
+              "ambient_occlusion": false
+            },
+            "up": {
+              "texture": "flowing_oil",
+              "render_method": "blend",
+              "face_dimming": false,
+              "ambient_occlusion": false
+            }
+          },
+          "minecraft:transformation": {
+            "rotation": [
+              0,
+              180,
+              0
+            ]
+          }
+        }
+      },
+      {
+        "condition": "q.block_state('csm:depth') == 8 && q.block_state('csm:direction') == 'west'",
+        "components": {
+          "minecraft:geometry": {
+            "identifier": "geometry.fluid.8",
+            "bone_visibility": {
+              "up": "q.block_state('inv:up') == 0",
+              "down": "q.block_state('inv:down') == 0",
+              "north": "q.block_state('inv:north') == 0",
+              "east": "q.block_state('inv:east') == 0",
+              "west": "q.block_state('inv:west') == 0",
+              "south": "q.block_state('inv:south') == 0",
+              "north_half": "q.block_state('inv:north') == 1",
+              "east_half": "q.block_state('inv:east') == 1",
+              "west_half": "q.block_state('inv:west') == 1",
+              "south_half": "q.block_state('inv:south') == 1"
+            }
+          },
+          "minecraft:material_instances": {
+            "*": {
+              "texture": "oil",
+              "render_method": "blend",
+              "face_dimming": false,
+              "ambient_occlusion": false
+            },
+            "up": {
+              "texture": "flowing_oil",
+              "render_method": "blend",
+              "face_dimming": false,
+              "ambient_occlusion": false
+            }
+          },
+          "minecraft:transformation": {
+            "rotation": [
+              0,
+              -90,
+              0
+            ]
+          }
+        }
+      },
+      {
+        "condition": "q.block_state('csm:depth') == 8 && q.block_state('csm:direction') == 'none'",
+        "components": {
+          "minecraft:geometry": {
+            "identifier": "geometry.fluid.8",
+            "bone_visibility": {
+              "up": "q.block_state('inv:up') == 0",
+              "down": "q.block_state('inv:down') == 0",
+              "north": "q.block_state('inv:north') == 0",
+              "east": "q.block_state('inv:east') == 0",
+              "west": "q.block_state('inv:west') == 0",
+              "south": "q.block_state('inv:south') == 0",
+              "north_half": "q.block_state('inv:north') == 1",
+              "east_half": "q.block_state('inv:east') == 1",
+              "west_half": "q.block_state('inv:west') == 1",
+              "south_half": "q.block_state('inv:south') == 1"
+            }
+          },
+          "minecraft:material_instances": {
+            "*": {
+              "texture": "oil",
+              "render_method": "blend",
+              "face_dimming": false,
+              "ambient_occlusion": false
+            }
+          }
+        }
+      }
+    ]
+  }
+}

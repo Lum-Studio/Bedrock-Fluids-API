@@ -1,0 +1,13 @@
+{
+  "num_mip_levels": 4,
+  "padding": 8,
+  "texture_name": "atlas.terrain",
+  "texture_data": {
+    "oil": {
+      "textures": "textures/blocks/oil"
+    },
+    "flowing_oil": {
+      "textures": "textures/items/oil"
+    }
+  }
+}
