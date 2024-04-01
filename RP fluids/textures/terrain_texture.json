@@ -7,7 +7,7 @@
       "textures": "textures/blocks/oil"
     },
     "flowing_oil": {
-      "textures": "textures/items/oil"
+      "textures": "textures/blocks/oil"
     }
   }
 }
