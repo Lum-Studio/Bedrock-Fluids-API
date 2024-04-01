@@ -8,18 +8,30 @@ export class fluidQueue{
     #isRunning = false;
     #runId;
     blockOperation;
-
+    /**
+     * Callback Function that changes the block
+     * @callback callback
+     * @param {Block} block
+     */
+    /**
+     * Creates new Fluid Queue
+     * @param {callback} operation 
+     * @param {string} blockTypeId 
+     */
     constructor(operation,blockTypeId){
-        if (!(operation instanceof Function)){
+        if (!(operation instanceof Function) || operation.length !== 1){
             throw new Error("Operation should be a function with one parameter")
         };
         this.type=blockTypeId;
         this.blockOperation = operation;
     }
-
+    /**
+     * Adds the fluid block to the queue
+     * @param {Block} block 
+     */
     add(block){
-        if (!isRunning) return console.warn("§cThe fluid queue is stopped, you can't use any methods")
-        if (block.typeId === this.type){
+        if (!isRunning) console.warn("§cThe fluid queue is stopped, you can't use any methods")
+        else if (block.typeId === this.type){
             if (this.#marked.any((v)=>block.x === v.x && block.y === v.y && block.z === v.z)){
                 this.#instant.push(block);
                 // delete mark
@@ -33,13 +45,17 @@ export class fluidQueue{
     }
     /**
      * Makes the block ignore queue the next time
+     * @param {Vector3} position
      */
     skipQueueFor(position){
         if (!this.#marked.any((v)=>block.x === v.x && block.y === v.y && block.z === v.z)){
             this.#marked.push(position)
         }
     }
-
+    /**
+     * Starts the fluid flow, spreading and changing
+     * @param {number} countPerTick 
+     */
     run(countPerTick){
         this.stop();
         this.#runId = system.runInterval(()=>{
@@ -67,7 +83,9 @@ export class fluidQueue{
         },0);
         this.#isRunning = true
     }
-    
+    /**
+     * Stops the fluid flow, spreading and changing
+     */
     stop(){
         if (this.#isRunning){
             system.clearRun(this.#runId);
