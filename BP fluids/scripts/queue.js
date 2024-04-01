@@ -9,10 +9,11 @@ export class fluidQueue{
     #runId;
     blockOperation;
 
-    constructor(operation){
+    constructor(operation,blockTypeId){
         if (!(operation instanceof Function)){
             throw new Error("Operation should be a function with one parameter")
         };
+        this.type=blockTypeId;
         this.blockOperation = operation;
     }
 
