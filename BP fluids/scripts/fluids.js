@@ -1,10 +1,11 @@
 import { Direction,ItemStack, BlockPermutation, system, world } from "@minecraft/server";
+import { FluidQueue } from "./queue";
 
 const air = BlockPermutation.resolve("air");
 const distance = 35;
 var currentTickRunned = false;
 let revers = ["south","north","east","west"];
-
+// placing & taking
 world.afterEvents.itemUse.subscribe(({block,itemStack,source:player})=>{
   
   let tag = itemStack.getTags().find((str)=>str.startsWith("placer:"));
@@ -61,7 +62,6 @@ world.beforeEvents.itemUseOn.subscribe((ev)=>{
     })
   }
 })
-
 world.beforeEvents.itemUseOn.subscribe((ev)=>{
   if (currentTickRunned) return;
   let {source:player, blockFace,itemStack,block} = ev;
@@ -97,7 +97,7 @@ world.beforeEvents.itemUseOn.subscribe((ev)=>{
     })
   }catch{}
 })
-
+// Floating
 system.runInterval(() => {
   currentTickRunned=false;
   const players = world.getPlayers();
@@ -127,86 +127,28 @@ system.runInterval(() => {
 });
 system.runInterval(() => {
   const players = world.getPlayers();
-
   for (const player of players) {
     if (player.isJumping && player.dimension.getBlock({ ...player.location, y: player.location.y + 0.7 }).hasTag('fluid')) {
       player.addEffect("slow_falling",1,{showParticles:false})
     }
   }
 },2);
-function clearPerm(perm){
-  for (let dir of ["south","north","east","west","down","up"]){
-    perm= perm.withState("lumstudio:invisible_"+dir,0)
-  };
-  return perm
-}
-function allNear(b,depth,tag){
-  let dirs =["north","south","west","east"];
-  for (let dir of dirs){
-    let block = b[dir]();
-    if (isEmpty(block)){
-      block.setPermutation(clearPerm(b.permutation).withState("lumstudio:depth",depth).withState("lumstudio:invisible_"+revers[dirs.indexOf(dir)],2));
-      b.setPermutation(b.permutation.withState("lumstudio:invisible_"+dir,1))
-    }
-    if (block.hasTag(tag) && block.permutation.getState("lumstudio:depth") < depth){
-      block.setPermutation(block.permutation.withState("lumstudio:depth",depth).withState("lumstudio:invisible_"+revers[dirs.indexOf(dir)],2));
-      b.setPermutation(b.permutation.withState("lumstudio:invisible_"+dir,1))
-    }
-  }
-}
 
-function isEmpty(b){
-  return b.isAir
+// Queues
+const Queues = {
+  "lumstudio:oil": new FluidQueue(fluidBasic,"lumstudio:oil")
 }
-function fluidTick(b,tag) {
-  let maxSize = b.hasTag("7-length") ? 8 : 7;
-  let perm = b.permutation;
-  let depth = perm.getState("lumstudio:depth");
-  let isSource = depth == maxSize-1 || depth == maxSize+1;
-  //check dying
-  if (!isSource){
-    let st = ["north","south","west","east"];
-    let live;
-    if (depth===maxSize) {
-      live = b.above()?.hasTag(tag);
-      b.setPermutation(b.permutation.withState("lumstudio:invisible_up",1));
+for (let queue of Object.values(Queues)){
+  queue.run(20)
+}
+// Main
+function fluidBasic(b) {
 
-    } else 
-    {
-      live = st.some((dir)=>{
-        let block = b[dir]();
-        if (!block?.hasTag(tag)) return false;
-        let depth2 = block.permutation.getState("lumstudio:depth");
-        if (depth2 < depth) b.permutation.withState("lumstudio:invisible_"+dir,1)
-        return depth2 > depth
-      })
-    }
-    if (!live && b.below()?.hasTag(tag)) b.below()?.setPermutation(b.below().permutation.withState("lumstudio:invisible_up",1))
-    if (!live) b.setPermutation(air);
-    
-    // choosing variant and spreading
-    let bel = b.below();
-    if (depth===maxSize) {
-      if (!isEmpty(bel) && !bel.hasTag(tag)) allNear(b,maxSize-2,tag);
-      if (isEmpty(bel)) bel.setPermutation(perm.withState("lumstudio:depth",maxSize))
-    } else if (depth !== 1)
-    {
-      if (!isEmpty(bel) && !bel.hasTag(tag)) allNear(b,depth-1,tag);
-      if (isEmpty(bel)) bel.setPermutation(perm.withState("lumstudio:depth",maxSize));
-      
-      if (b.above()?.hasTag(tag)) b.setPermutation(perm.withState("lumstudio:depth",maxSize));
-    } else if (isEmpty(bel)) bel.setPermutation(perm.withState("lumstudio:depth",maxSize));
-  }else
-  {
-    b.setPermutation(perm.withState("lumstudio:depth",b.above()?.hasTag(tag) ? maxSize+1 : maxSize-1 ));
-    allNear(b,maxSize-2,tag);
-    if (isEmpty(b.below())) b.below().setPermutation(perm.withState("lumstudio:depth",maxSize))
-  }
 }
 
 system.afterEvents.scriptEventReceive.subscribe((event)=>{
   let {sourceBlock:b,message,id} = event;
-  if (id !== "lumstudio:fluid" ) return;
+  if (id !== "lumstudio:fluid") return;
   if (!b) return;
   if (
     world.getAllPlayers().every(
@@ -216,11 +158,16 @@ system.afterEvents.scriptEventReceive.subscribe((event)=>{
           + Math.pow(b.location.z-P.location.z,2)
           + Math.pow(b.location.y-P.location.y,2)
         );
-        
         return distance < dist
       }
     )
   ) return;
-  fluidTick(b,message)
+  /**
+   * @type FluidQueue
+   */
+  let Q = Queues[b.typeId];
+  if (Q){
+    Q.add(b)
+  }
 })
 

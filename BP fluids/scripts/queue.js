@@ -1,6 +1,6 @@
 import {system} from "@minecraft/server";
 
-export class fluidQueue{
+export class FluidQueue{
     type;
     #marked = []; // Positions
     #optimized=[];
