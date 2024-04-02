@@ -2,19 +2,19 @@
   "format_version": "1.20.60",
   "minecraft:block": {
     "description": {
-      "identifier": "csm:oil",
+      "identifier": "lumstudio:oil",
       "menu_category": {
         "category": "none"
       },
       "states": {
-        "inv:east": [0,1,2],
-        "inv:west": [0,1,2],
-        "inv:north": [0,1,2],
-        "inv:south": [0,1,2],
-        "inv:up": [0,1],
-        "inv:down": [0,1],
-        "csm:depth": [6,7,5,4,3,2,1],
-        "csm:direction": ["none","s","n","e","w"]
+        "lumstudio:invisible_east": [0,1,2],
+        "lumstudio:invisible_west": [0,1,2],
+        "lumstudio:invisible_north": [0,1,2],
+        "lumstudio:invisible_south": [0,1,2],
+        "lumstudio:invisible_up": [0,1],
+        "lumstudio:invisible_down": [0,1],
+        "lumstudio:depth": [6,7,5,4,3,2,1],
+        "lumstudio:direction": ["none","s","n","e","w"]
       }
     },
     "components": {
@@ -27,7 +27,7 @@
         "looping": true,
         "interval_range": [13, 14],
         "on_tick": {
-          "event": "csm:flow"
+          "event": "lumstudio:flow"
         }
       },
       
@@ -44,30 +44,30 @@
       "tag:fluid": {}
     },
     "events": {
-      "csm:flow": {
+      "lumstudio:flow": {
         "run_command":{
-            "command": "scriptevent csm:fluid custom_fluid"
+            "command": "scriptevent lumstudio:fluid custom_fluid"
         }
       }
       
     },
     "permutations": [
       {
-        "condition": "q.block_state('csm:depth') == 1 && q.block_state('csm:direction') == 'north'",
+        "condition": "q.block_state('lumstudio:depth') == 1 && q.block_state('lumstudio:direction') == 'north'",
         "components": {
           "minecraft:geometry": {
             "identifier": "geometry.fluid.1",
             "bone_visibility": {
-              "up": "q.block_state('inv:up') == 0",
-              "down": "q.block_state('inv:down') == 0",
-              "north": "q.block_state('inv:north') == 0",
-              "east": "q.block_state('inv:east') == 0",
-              "west": "q.block_state('inv:west') == 0",
-              "south": "q.block_state('inv:south') == 0",
-              "north_half": "q.block_state('inv:north') == 1",
-              "east_half": "q.block_state('inv:east') == 1",
-              "west_half": "q.block_state('inv:west') == 1",
-              "south_half": "q.block_state('inv:south') == 1"
+              "up": "q.block_state('lumstudio:invisible_up') == 0",
+              "down": "q.block_state('lumstudio:invisible_down') == 0",
+              "north": "q.block_state('lumstudio:invisible_north') == 0",
+              "east": "q.block_state('lumstudio:invisible_east') == 0",
+              "west": "q.block_state('lumstudio:invisible_west') == 0",
+              "south": "q.block_state('lumstudio:invisible_south') == 0",
+              "north_half": "q.block_state('lumstudio:invisible_north') == 1",
+              "east_half": "q.block_state('lumstudio:invisible_east') == 1",
+              "west_half": "q.block_state('lumstudio:invisible_west') == 1",
+              "south_half": "q.block_state('lumstudio:invisible_south') == 1"
             }
           },
           "minecraft:material_instances": {
@@ -87,21 +87,21 @@
         }
       },
       {
-        "condition": "q.block_state('csm:depth') == 1 && q.block_state('csm:direction') == 'east'",
+        "condition": "q.block_state('lumstudio:depth') == 1 && q.block_state('lumstudio:direction') == 'east'",
         "components": {
           "minecraft:geometry": {
             "identifier": "geometry.fluid.1",
             "bone_visibility": {
-              "up": "q.block_state('inv:up') == 0",
-              "down": "q.block_state('inv:down') == 0",
-              "north": "q.block_state('inv:north') == 0",
-              "east": "q.block_state('inv:east') == 0",
-              "west": "q.block_state('inv:west') == 0",
-              "south": "q.block_state('inv:south') == 0",
-              "north_half": "q.block_state('inv:north') == 1",
-              "east_half": "q.block_state('inv:east') == 1",
-              "west_half": "q.block_state('inv:west') == 1",
-              "south_half": "q.block_state('inv:south') == 1"
+              "up": "q.block_state('lumstudio:invisible_up') == 0",
+              "down": "q.block_state('lumstudio:invisible_down') == 0",
+              "north": "q.block_state('lumstudio:invisible_north') == 0",
+              "east": "q.block_state('lumstudio:invisible_east') == 0",
+              "west": "q.block_state('lumstudio:invisible_west') == 0",
+              "south": "q.block_state('lumstudio:invisible_south') == 0",
+              "north_half": "q.block_state('lumstudio:invisible_north') == 1",
+              "east_half": "q.block_state('lumstudio:invisible_east') == 1",
+              "west_half": "q.block_state('lumstudio:invisible_west') == 1",
+              "south_half": "q.block_state('lumstudio:invisible_south') == 1"
             }
           },
           "minecraft:material_instances": {
@@ -128,21 +128,21 @@
         }
       },
       {
-        "condition": "q.block_state('csm:depth') == 1 && q.block_state('csm:direction') == 'south'",
+        "condition": "q.block_state('lumstudio:depth') == 1 && q.block_state('lumstudio:direction') == 'south'",
         "components": {
           "minecraft:geometry": {
             "identifier": "geometry.fluid.1",
             "bone_visibility": {
-              "up": "q.block_state('inv:up') == 0",
-              "down": "q.block_state('inv:down') == 0",
-              "north": "q.block_state('inv:north') == 0",
-              "east": "q.block_state('inv:east') == 0",
-              "west": "q.block_state('inv:west') == 0",
-              "south": "q.block_state('inv:south') == 0",
-              "north_half": "q.block_state('inv:north') == 1",
-              "east_half": "q.block_state('inv:east') == 1",
-              "west_half": "q.block_state('inv:west') == 1",
-              "south_half": "q.block_state('inv:south') == 1"
+              "up": "q.block_state('lumstudio:invisible_up') == 0",
+              "down": "q.block_state('lumstudio:invisible_down') == 0",
+              "north": "q.block_state('lumstudio:invisible_north') == 0",
+              "east": "q.block_state('lumstudio:invisible_east') == 0",
+              "west": "q.block_state('lumstudio:invisible_west') == 0",
+              "south": "q.block_state('lumstudio:invisible_south') == 0",
+              "north_half": "q.block_state('lumstudio:invisible_north') == 1",
+              "east_half": "q.block_state('lumstudio:invisible_east') == 1",
+              "west_half": "q.block_state('lumstudio:invisible_west') == 1",
+              "south_half": "q.block_state('lumstudio:invisible_south') == 1"
             }
           },
           "minecraft:material_instances": {
@@ -169,21 +169,21 @@
         }
       },
       {
-        "condition": "q.block_state('csm:depth') == 1 && q.block_state('csm:direction') == 'west'",
+        "condition": "q.block_state('lumstudio:depth') == 1 && q.block_state('lumstudio:direction') == 'west'",
         "components": {
           "minecraft:geometry": {
             "identifier": "geometry.fluid.1",
             "bone_visibility": {
-              "up": "q.block_state('inv:up') == 0",
-              "down": "q.block_state('inv:down') == 0",
-              "north": "q.block_state('inv:north') == 0",
-              "east": "q.block_state('inv:east') == 0",
-              "west": "q.block_state('inv:west') == 0",
-              "south": "q.block_state('inv:south') == 0",
-              "north_half": "q.block_state('inv:north') == 1",
-              "east_half": "q.block_state('inv:east') == 1",
-              "west_half": "q.block_state('inv:west') == 1",
-              "south_half": "q.block_state('inv:south') == 1"
+              "up": "q.block_state('lumstudio:invisible_up') == 0",
+              "down": "q.block_state('lumstudio:invisible_down') == 0",
+              "north": "q.block_state('lumstudio:invisible_north') == 0",
+              "east": "q.block_state('lumstudio:invisible_east') == 0",
+              "west": "q.block_state('lumstudio:invisible_west') == 0",
+              "south": "q.block_state('lumstudio:invisible_south') == 0",
+              "north_half": "q.block_state('lumstudio:invisible_north') == 1",
+              "east_half": "q.block_state('lumstudio:invisible_east') == 1",
+              "west_half": "q.block_state('lumstudio:invisible_west') == 1",
+              "south_half": "q.block_state('lumstudio:invisible_south') == 1"
             }
           },
           "minecraft:material_instances": {
@@ -210,21 +210,21 @@
         }
       },
       {
-        "condition": "q.block_state('csm:depth') == 1 && q.block_state('csm:direction') == 'none'",
+        "condition": "q.block_state('lumstudio:depth') == 1 && q.block_state('lumstudio:direction') == 'none'",
         "components": {
           "minecraft:geometry": {
             "identifier": "geometry.fluid.1",
             "bone_visibility": {
-              "up": "q.block_state('inv:up') == 0",
-              "down": "q.block_state('inv:down') == 0",
-              "north": "q.block_state('inv:north') == 0",
-              "east": "q.block_state('inv:east') == 0",
-              "west": "q.block_state('inv:west') == 0",
-              "south": "q.block_state('inv:south') == 0",
-              "north_half": "q.block_state('inv:north') == 1",
-              "east_half": "q.block_state('inv:east') == 1",
-              "west_half": "q.block_state('inv:west') == 1",
-              "south_half": "q.block_state('inv:south') == 1"
+              "up": "q.block_state('lumstudio:invisible_up') == 0",
+              "down": "q.block_state('lumstudio:invisible_down') == 0",
+              "north": "q.block_state('lumstudio:invisible_north') == 0",
+              "east": "q.block_state('lumstudio:invisible_east') == 0",
+              "west": "q.block_state('lumstudio:invisible_west') == 0",
+              "south": "q.block_state('lumstudio:invisible_south') == 0",
+              "north_half": "q.block_state('lumstudio:invisible_north') == 1",
+              "east_half": "q.block_state('lumstudio:invisible_east') == 1",
+              "west_half": "q.block_state('lumstudio:invisible_west') == 1",
+              "south_half": "q.block_state('lumstudio:invisible_south') == 1"
             }
           },
           "minecraft:material_instances": {
@@ -238,21 +238,21 @@
         }
       },
       {
-        "condition": "q.block_state('csm:depth') == 2 && q.block_state('csm:direction') == 'north'",
+        "condition": "q.block_state('lumstudio:depth') == 2 && q.block_state('lumstudio:direction') == 'north'",
         "components": {
           "minecraft:geometry": {
             "identifier": "geometry.fluid.2",
             "bone_visibility": {
-              "up": "q.block_state('inv:up') == 0",
-              "down": "q.block_state('inv:down') == 0",
-              "north": "q.block_state('inv:north') == 0",
-              "east": "q.block_state('inv:east') == 0",
-              "west": "q.block_state('inv:west') == 0",
-              "south": "q.block_state('inv:south') == 0",
-              "north_half": "q.block_state('inv:north') == 1",
-              "east_half": "q.block_state('inv:east') == 1",
-              "west_half": "q.block_state('inv:west') == 1",
-              "south_half": "q.block_state('inv:south') == 1"
+              "up": "q.block_state('lumstudio:invisible_up') == 0",
+              "down": "q.block_state('lumstudio:invisible_down') == 0",
+              "north": "q.block_state('lumstudio:invisible_north') == 0",
+              "east": "q.block_state('lumstudio:invisible_east') == 0",
+              "west": "q.block_state('lumstudio:invisible_west') == 0",
+              "south": "q.block_state('lumstudio:invisible_south') == 0",
+              "north_half": "q.block_state('lumstudio:invisible_north') == 1",
+              "east_half": "q.block_state('lumstudio:invisible_east') == 1",
+              "west_half": "q.block_state('lumstudio:invisible_west') == 1",
+              "south_half": "q.block_state('lumstudio:invisible_south') == 1"
             }
           },
           "minecraft:material_instances": {
@@ -272,21 +272,21 @@
         }
       },
       {
-        "condition": "q.block_state('csm:depth') == 2 && q.block_state('csm:direction') == 'east'",
+        "condition": "q.block_state('lumstudio:depth') == 2 && q.block_state('lumstudio:direction') == 'east'",
         "components": {
           "minecraft:geometry": {
             "identifier": "geometry.fluid.2",
             "bone_visibility": {
-              "up": "q.block_state('inv:up') == 0",
-              "down": "q.block_state('inv:down') == 0",
-              "north": "q.block_state('inv:north') == 0",
-              "east": "q.block_state('inv:east') == 0",
-              "west": "q.block_state('inv:west') == 0",
-              "south": "q.block_state('inv:south') == 0",
-              "north_half": "q.block_state('inv:north') == 1",
-              "east_half": "q.block_state('inv:east') == 1",
-              "west_half": "q.block_state('inv:west') == 1",
-              "south_half": "q.block_state('inv:south') == 1"
+              "up": "q.block_state('lumstudio:invisible_up') == 0",
+              "down": "q.block_state('lumstudio:invisible_down') == 0",
+              "north": "q.block_state('lumstudio:invisible_north') == 0",
+              "east": "q.block_state('lumstudio:invisible_east') == 0",
+              "west": "q.block_state('lumstudio:invisible_west') == 0",
+              "south": "q.block_state('lumstudio:invisible_south') == 0",
+              "north_half": "q.block_state('lumstudio:invisible_north') == 1",
+              "east_half": "q.block_state('lumstudio:invisible_east') == 1",
+              "west_half": "q.block_state('lumstudio:invisible_west') == 1",
+              "south_half": "q.block_state('lumstudio:invisible_south') == 1"
             }
           },
           "minecraft:material_instances": {
@@ -313,21 +313,21 @@
         }
       },
       {
-        "condition": "q.block_state('csm:depth') == 2 && q.block_state('csm:direction') == 'south'",
+        "condition": "q.block_state('lumstudio:depth') == 2 && q.block_state('lumstudio:direction') == 'south'",
         "components": {
           "minecraft:geometry": {
             "identifier": "geometry.fluid.2",
             "bone_visibility": {
-              "up": "q.block_state('inv:up') == 0",
-              "down": "q.block_state('inv:down') == 0",
-              "north": "q.block_state('inv:north') == 0",
-              "east": "q.block_state('inv:east') == 0",
-              "west": "q.block_state('inv:west') == 0",
-              "south": "q.block_state('inv:south') == 0",
-              "north_half": "q.block_state('inv:north') == 1",
-              "east_half": "q.block_state('inv:east') == 1",
-              "west_half": "q.block_state('inv:west') == 1",
-              "south_half": "q.block_state('inv:south') == 1"
+              "up": "q.block_state('lumstudio:invisible_up') == 0",
+              "down": "q.block_state('lumstudio:invisible_down') == 0",
+              "north": "q.block_state('lumstudio:invisible_north') == 0",
+              "east": "q.block_state('lumstudio:invisible_east') == 0",
+              "west": "q.block_state('lumstudio:invisible_west') == 0",
+              "south": "q.block_state('lumstudio:invisible_south') == 0",
+              "north_half": "q.block_state('lumstudio:invisible_north') == 1",
+              "east_half": "q.block_state('lumstudio:invisible_east') == 1",
+              "west_half": "q.block_state('lumstudio:invisible_west') == 1",
+              "south_half": "q.block_state('lumstudio:invisible_south') == 1"
             }
           },
           "minecraft:material_instances": {
@@ -354,21 +354,21 @@
         }
       },
       {
-        "condition": "q.block_state('csm:depth') == 2 && q.block_state('csm:direction') == 'west'",
+        "condition": "q.block_state('lumstudio:depth') == 2 && q.block_state('lumstudio:direction') == 'west'",
         "components": {
           "minecraft:geometry": {
             "identifier": "geometry.fluid.2",
             "bone_visibility": {
-              "up": "q.block_state('inv:up') == 0",
-              "down": "q.block_state('inv:down') == 0",
-              "north": "q.block_state('inv:north') == 0",
-              "east": "q.block_state('inv:east') == 0",
-              "west": "q.block_state('inv:west') == 0",
-              "south": "q.block_state('inv:south') == 0",
-              "north_half": "q.block_state('inv:north') == 1",
-              "east_half": "q.block_state('inv:east') == 1",
-              "west_half": "q.block_state('inv:west') == 1",
-              "south_half": "q.block_state('inv:south') == 1"
+              "up": "q.block_state('lumstudio:invisible_up') == 0",
+              "down": "q.block_state('lumstudio:invisible_down') == 0",
+              "north": "q.block_state('lumstudio:invisible_north') == 0",
+              "east": "q.block_state('lumstudio:invisible_east') == 0",
+              "west": "q.block_state('lumstudio:invisible_west') == 0",
+              "south": "q.block_state('lumstudio:invisible_south') == 0",
+              "north_half": "q.block_state('lumstudio:invisible_north') == 1",
+              "east_half": "q.block_state('lumstudio:invisible_east') == 1",
+              "west_half": "q.block_state('lumstudio:invisible_west') == 1",
+              "south_half": "q.block_state('lumstudio:invisible_south') == 1"
             }
           },
           "minecraft:material_instances": {
@@ -395,21 +395,21 @@
         }
       },
       {
-        "condition": "q.block_state('csm:depth') == 2 && q.block_state('csm:direction') == 'none'",
+        "condition": "q.block_state('lumstudio:depth') == 2 && q.block_state('lumstudio:direction') == 'none'",
         "components": {
           "minecraft:geometry": {
             "identifier": "geometry.fluid.2",
             "bone_visibility": {
-              "up": "q.block_state('inv:up') == 0",
-              "down": "q.block_state('inv:down') == 0",
-              "north": "q.block_state('inv:north') == 0",
-              "east": "q.block_state('inv:east') == 0",
-              "west": "q.block_state('inv:west') == 0",
-              "south": "q.block_state('inv:south') == 0",
-              "north_half": "q.block_state('inv:north') == 1",
-              "east_half": "q.block_state('inv:east') == 1",
-              "west_half": "q.block_state('inv:west') == 1",
-              "south_half": "q.block_state('inv:south') == 1"
+              "up": "q.block_state('lumstudio:invisible_up') == 0",
+              "down": "q.block_state('lumstudio:invisible_down') == 0",
+              "north": "q.block_state('lumstudio:invisible_north') == 0",
+              "east": "q.block_state('lumstudio:invisible_east') == 0",
+              "west": "q.block_state('lumstudio:invisible_west') == 0",
+              "south": "q.block_state('lumstudio:invisible_south') == 0",
+              "north_half": "q.block_state('lumstudio:invisible_north') == 1",
+              "east_half": "q.block_state('lumstudio:invisible_east') == 1",
+              "west_half": "q.block_state('lumstudio:invisible_west') == 1",
+              "south_half": "q.block_state('lumstudio:invisible_south') == 1"
             }
           },
           "minecraft:material_instances": {
@@ -423,21 +423,21 @@
         }
       },
       {
-        "condition": "q.block_state('csm:depth') == 3 && q.block_state('csm:direction') == 'north'",
+        "condition": "q.block_state('lumstudio:depth') == 3 && q.block_state('lumstudio:direction') == 'north'",
         "components": {
           "minecraft:geometry": {
             "identifier": "geometry.fluid.3",
             "bone_visibility": {
-              "up": "q.block_state('inv:up') == 0",
-              "down": "q.block_state('inv:down') == 0",
-              "north": "q.block_state('inv:north') == 0",
-              "east": "q.block_state('inv:east') == 0",
-              "west": "q.block_state('inv:west') == 0",
-              "south": "q.block_state('inv:south') == 0",
-              "north_half": "q.block_state('inv:north') == 1",
-              "east_half": "q.block_state('inv:east') == 1",
-              "west_half": "q.block_state('inv:west') == 1",
-              "south_half": "q.block_state('inv:south') == 1"
+              "up": "q.block_state('lumstudio:invisible_up') == 0",
+              "down": "q.block_state('lumstudio:invisible_down') == 0",
+              "north": "q.block_state('lumstudio:invisible_north') == 0",
+              "east": "q.block_state('lumstudio:invisible_east') == 0",
+              "west": "q.block_state('lumstudio:invisible_west') == 0",
+              "south": "q.block_state('lumstudio:invisible_south') == 0",
+              "north_half": "q.block_state('lumstudio:invisible_north') == 1",
+              "east_half": "q.block_state('lumstudio:invisible_east') == 1",
+              "west_half": "q.block_state('lumstudio:invisible_west') == 1",
+              "south_half": "q.block_state('lumstudio:invisible_south') == 1"
             }
           },
           "minecraft:material_instances": {
@@ -457,21 +457,21 @@
         }
       },
       {
-        "condition": "q.block_state('csm:depth') == 3 && q.block_state('csm:direction') == 'east'",
+        "condition": "q.block_state('lumstudio:depth') == 3 && q.block_state('lumstudio:direction') == 'east'",
         "components": {
           "minecraft:geometry": {
             "identifier": "geometry.fluid.3",
             "bone_visibility": {
-              "up": "q.block_state('inv:up') == 0",
-              "down": "q.block_state('inv:down') == 0",
-              "north": "q.block_state('inv:north') == 0",
-              "east": "q.block_state('inv:east') == 0",
-              "west": "q.block_state('inv:west') == 0",
-              "south": "q.block_state('inv:south') == 0",
-              "north_half": "q.block_state('inv:north') == 1",
-              "east_half": "q.block_state('inv:east') == 1",
-              "west_half": "q.block_state('inv:west') == 1",
-              "south_half": "q.block_state('inv:south') == 1"
+              "up": "q.block_state('lumstudio:invisible_up') == 0",
+              "down": "q.block_state('lumstudio:invisible_down') == 0",
+              "north": "q.block_state('lumstudio:invisible_north') == 0",
+              "east": "q.block_state('lumstudio:invisible_east') == 0",
+              "west": "q.block_state('lumstudio:invisible_west') == 0",
+              "south": "q.block_state('lumstudio:invisible_south') == 0",
+              "north_half": "q.block_state('lumstudio:invisible_north') == 1",
+              "east_half": "q.block_state('lumstudio:invisible_east') == 1",
+              "west_half": "q.block_state('lumstudio:invisible_west') == 1",
+              "south_half": "q.block_state('lumstudio:invisible_south') == 1"
             }
           },
           "minecraft:material_instances": {
@@ -498,21 +498,21 @@
         }
       },
       {
-        "condition": "q.block_state('csm:depth') == 3 && q.block_state('csm:direction') == 'south'",
+        "condition": "q.block_state('lumstudio:depth') == 3 && q.block_state('lumstudio:direction') == 'south'",
         "components": {
           "minecraft:geometry": {
             "identifier": "geometry.fluid.3",
             "bone_visibility": {
-              "up": "q.block_state('inv:up') == 0",
-              "down": "q.block_state('inv:down') == 0",
-              "north": "q.block_state('inv:north') == 0",
-              "east": "q.block_state('inv:east') == 0",
-              "west": "q.block_state('inv:west') == 0",
-              "south": "q.block_state('inv:south') == 0",
-              "north_half": "q.block_state('inv:north') == 1",
-              "east_half": "q.block_state('inv:east') == 1",
-              "west_half": "q.block_state('inv:west') == 1",
-              "south_half": "q.block_state('inv:south') == 1"
+              "up": "q.block_state('lumstudio:invisible_up') == 0",
+              "down": "q.block_state('lumstudio:invisible_down') == 0",
+              "north": "q.block_state('lumstudio:invisible_north') == 0",
+              "east": "q.block_state('lumstudio:invisible_east') == 0",
+              "west": "q.block_state('lumstudio:invisible_west') == 0",
+              "south": "q.block_state('lumstudio:invisible_south') == 0",
+              "north_half": "q.block_state('lumstudio:invisible_north') == 1",
+              "east_half": "q.block_state('lumstudio:invisible_east') == 1",
+              "west_half": "q.block_state('lumstudio:invisible_west') == 1",
+              "south_half": "q.block_state('lumstudio:invisible_south') == 1"
             }
           },
           "minecraft:material_instances": {
@@ -539,21 +539,21 @@
         }
       },
       {
-        "condition": "q.block_state('csm:depth') == 3 && q.block_state('csm:direction') == 'west'",
+        "condition": "q.block_state('lumstudio:depth') == 3 && q.block_state('lumstudio:direction') == 'west'",
         "components": {
           "minecraft:geometry": {
             "identifier": "geometry.fluid.3",
             "bone_visibility": {
-              "up": "q.block_state('inv:up') == 0",
-              "down": "q.block_state('inv:down') == 0",
-              "north": "q.block_state('inv:north') == 0",
-              "east": "q.block_state('inv:east') == 0",
-              "west": "q.block_state('inv:west') == 0",
-              "south": "q.block_state('inv:south') == 0",
-              "north_half": "q.block_state('inv:north') == 1",
-              "east_half": "q.block_state('inv:east') == 1",
-              "west_half": "q.block_state('inv:west') == 1",
-              "south_half": "q.block_state('inv:south') == 1"
+              "up": "q.block_state('lumstudio:invisible_up') == 0",
+              "down": "q.block_state('lumstudio:invisible_down') == 0",
+              "north": "q.block_state('lumstudio:invisible_north') == 0",
+              "east": "q.block_state('lumstudio:invisible_east') == 0",
+              "west": "q.block_state('lumstudio:invisible_west') == 0",
+              "south": "q.block_state('lumstudio:invisible_south') == 0",
+              "north_half": "q.block_state('lumstudio:invisible_north') == 1",
+              "east_half": "q.block_state('lumstudio:invisible_east') == 1",
+              "west_half": "q.block_state('lumstudio:invisible_west') == 1",
+              "south_half": "q.block_state('lumstudio:invisible_south') == 1"
             }
           },
           "minecraft:material_instances": {
@@ -580,21 +580,21 @@
         }
       },
       {
-        "condition": "q.block_state('csm:depth') == 3 && q.block_state('csm:direction') == 'none'",
+        "condition": "q.block_state('lumstudio:depth') == 3 && q.block_state('lumstudio:direction') == 'none'",
         "components": {
           "minecraft:geometry": {
             "identifier": "geometry.fluid.3",
             "bone_visibility": {
-              "up": "q.block_state('inv:up') == 0",
-              "down": "q.block_state('inv:down') == 0",
-              "north": "q.block_state('inv:north') == 0",
-              "east": "q.block_state('inv:east') == 0",
-              "west": "q.block_state('inv:west') == 0",
-              "south": "q.block_state('inv:south') == 0",
-              "north_half": "q.block_state('inv:north') == 1",
-              "east_half": "q.block_state('inv:east') == 1",
-              "west_half": "q.block_state('inv:west') == 1",
-              "south_half": "q.block_state('inv:south') == 1"
+              "up": "q.block_state('lumstudio:invisible_up') == 0",
+              "down": "q.block_state('lumstudio:invisible_down') == 0",
+              "north": "q.block_state('lumstudio:invisible_north') == 0",
+              "east": "q.block_state('lumstudio:invisible_east') == 0",
+              "west": "q.block_state('lumstudio:invisible_west') == 0",
+              "south": "q.block_state('lumstudio:invisible_south') == 0",
+              "north_half": "q.block_state('lumstudio:invisible_north') == 1",
+              "east_half": "q.block_state('lumstudio:invisible_east') == 1",
+              "west_half": "q.block_state('lumstudio:invisible_west') == 1",
+              "south_half": "q.block_state('lumstudio:invisible_south') == 1"
             }
           },
           "minecraft:material_instances": {
@@ -608,21 +608,21 @@
         }
       },
       {
-        "condition": "q.block_state('csm:depth') == 4 && q.block_state('csm:direction') == 'north'",
+        "condition": "q.block_state('lumstudio:depth') == 4 && q.block_state('lumstudio:direction') == 'north'",
         "components": {
           "minecraft:geometry": {
             "identifier": "geometry.fluid.4",
             "bone_visibility": {
-              "up": "q.block_state('inv:up') == 0",
-              "down": "q.block_state('inv:down') == 0",
-              "north": "q.block_state('inv:north') == 0",
-              "east": "q.block_state('inv:east') == 0",
-              "west": "q.block_state('inv:west') == 0",
-              "south": "q.block_state('inv:south') == 0",
-              "north_half": "q.block_state('inv:north') == 1",
-              "east_half": "q.block_state('inv:east') == 1",
-              "west_half": "q.block_state('inv:west') == 1",
-              "south_half": "q.block_state('inv:south') == 1"
+              "up": "q.block_state('lumstudio:invisible_up') == 0",
+              "down": "q.block_state('lumstudio:invisible_down') == 0",
+              "north": "q.block_state('lumstudio:invisible_north') == 0",
+              "east": "q.block_state('lumstudio:invisible_east') == 0",
+              "west": "q.block_state('lumstudio:invisible_west') == 0",
+              "south": "q.block_state('lumstudio:invisible_south') == 0",
+              "north_half": "q.block_state('lumstudio:invisible_north') == 1",
+              "east_half": "q.block_state('lumstudio:invisible_east') == 1",
+              "west_half": "q.block_state('lumstudio:invisible_west') == 1",
+              "south_half": "q.block_state('lumstudio:invisible_south') == 1"
             }
           },
           "minecraft:material_instances": {
@@ -642,21 +642,21 @@
         }
       },
       {
-        "condition": "q.block_state('csm:depth') == 4 && q.block_state('csm:direction') == 'east'",
+        "condition": "q.block_state('lumstudio:depth') == 4 && q.block_state('lumstudio:direction') == 'east'",
         "components": {
           "minecraft:geometry": {
             "identifier": "geometry.fluid.4",
             "bone_visibility": {
-              "up": "q.block_state('inv:up') == 0",
-              "down": "q.block_state('inv:down') == 0",
-              "north": "q.block_state('inv:north') == 0",
-              "east": "q.block_state('inv:east') == 0",
-              "west": "q.block_state('inv:west') == 0",
-              "south": "q.block_state('inv:south') == 0",
-              "north_half": "q.block_state('inv:north') == 1",
-              "east_half": "q.block_state('inv:east') == 1",
-              "west_half": "q.block_state('inv:west') == 1",
-              "south_half": "q.block_state('inv:south') == 1"
+              "up": "q.block_state('lumstudio:invisible_up') == 0",
+              "down": "q.block_state('lumstudio:invisible_down') == 0",
+              "north": "q.block_state('lumstudio:invisible_north') == 0",
+              "east": "q.block_state('lumstudio:invisible_east') == 0",
+              "west": "q.block_state('lumstudio:invisible_west') == 0",
+              "south": "q.block_state('lumstudio:invisible_south') == 0",
+              "north_half": "q.block_state('lumstudio:invisible_north') == 1",
+              "east_half": "q.block_state('lumstudio:invisible_east') == 1",
+              "west_half": "q.block_state('lumstudio:invisible_west') == 1",
+              "south_half": "q.block_state('lumstudio:invisible_south') == 1"
             }
           },
           "minecraft:material_instances": {
@@ -683,21 +683,21 @@
         }
       },
       {
-        "condition": "q.block_state('csm:depth') == 4 && q.block_state('csm:direction') == 'south'",
+        "condition": "q.block_state('lumstudio:depth') == 4 && q.block_state('lumstudio:direction') == 'south'",
         "components": {
           "minecraft:geometry": {
             "identifier": "geometry.fluid.4",
             "bone_visibility": {
-              "up": "q.block_state('inv:up') == 0",
-              "down": "q.block_state('inv:down') == 0",
-              "north": "q.block_state('inv:north') == 0",
-              "east": "q.block_state('inv:east') == 0",
-              "west": "q.block_state('inv:west') == 0",
-              "south": "q.block_state('inv:south') == 0",
-              "north_half": "q.block_state('inv:north') == 1",
-              "east_half": "q.block_state('inv:east') == 1",
-              "west_half": "q.block_state('inv:west') == 1",
-              "south_half": "q.block_state('inv:south') == 1"
+              "up": "q.block_state('lumstudio:invisible_up') == 0",
+              "down": "q.block_state('lumstudio:invisible_down') == 0",
+              "north": "q.block_state('lumstudio:invisible_north') == 0",
+              "east": "q.block_state('lumstudio:invisible_east') == 0",
+              "west": "q.block_state('lumstudio:invisible_west') == 0",
+              "south": "q.block_state('lumstudio:invisible_south') == 0",
+              "north_half": "q.block_state('lumstudio:invisible_north') == 1",
+              "east_half": "q.block_state('lumstudio:invisible_east') == 1",
+              "west_half": "q.block_state('lumstudio:invisible_west') == 1",
+              "south_half": "q.block_state('lumstudio:invisible_south') == 1"
             }
           },
           "minecraft:material_instances": {
@@ -724,21 +724,21 @@
         }
       },
       {
-        "condition": "q.block_state('csm:depth') == 4 && q.block_state('csm:direction') == 'west'",
+        "condition": "q.block_state('lumstudio:depth') == 4 && q.block_state('lumstudio:direction') == 'west'",
         "components": {
           "minecraft:geometry": {
             "identifier": "geometry.fluid.4",
             "bone_visibility": {
-              "up": "q.block_state('inv:up') == 0",
-              "down": "q.block_state('inv:down') == 0",
-              "north": "q.block_state('inv:north') == 0",
-              "east": "q.block_state('inv:east') == 0",
-              "west": "q.block_state('inv:west') == 0",
-              "south": "q.block_state('inv:south') == 0",
-              "north_half": "q.block_state('inv:north') == 1",
-              "east_half": "q.block_state('inv:east') == 1",
-              "west_half": "q.block_state('inv:west') == 1",
-              "south_half": "q.block_state('inv:south') == 1"
+              "up": "q.block_state('lumstudio:invisible_up') == 0",
+              "down": "q.block_state('lumstudio:invisible_down') == 0",
+              "north": "q.block_state('lumstudio:invisible_north') == 0",
+              "east": "q.block_state('lumstudio:invisible_east') == 0",
+              "west": "q.block_state('lumstudio:invisible_west') == 0",
+              "south": "q.block_state('lumstudio:invisible_south') == 0",
+              "north_half": "q.block_state('lumstudio:invisible_north') == 1",
+              "east_half": "q.block_state('lumstudio:invisible_east') == 1",
+              "west_half": "q.block_state('lumstudio:invisible_west') == 1",
+              "south_half": "q.block_state('lumstudio:invisible_south') == 1"
             }
           },
           "minecraft:material_instances": {
@@ -765,21 +765,21 @@
         }
       },
       {
-        "condition": "q.block_state('csm:depth') == 4 && q.block_state('csm:direction') == 'none'",
+        "condition": "q.block_state('lumstudio:depth') == 4 && q.block_state('lumstudio:direction') == 'none'",
         "components": {
           "minecraft:geometry": {
             "identifier": "geometry.fluid.4",
             "bone_visibility": {
-              "up": "q.block_state('inv:up') == 0",
-              "down": "q.block_state('inv:down') == 0",
-              "north": "q.block_state('inv:north') == 0",
-              "east": "q.block_state('inv:east') == 0",
-              "west": "q.block_state('inv:west') == 0",
-              "south": "q.block_state('inv:south') == 0",
-              "north_half": "q.block_state('inv:north') == 1",
-              "east_half": "q.block_state('inv:east') == 1",
-              "west_half": "q.block_state('inv:west') == 1",
-              "south_half": "q.block_state('inv:south') == 1"
+              "up": "q.block_state('lumstudio:invisible_up') == 0",
+              "down": "q.block_state('lumstudio:invisible_down') == 0",
+              "north": "q.block_state('lumstudio:invisible_north') == 0",
+              "east": "q.block_state('lumstudio:invisible_east') == 0",
+              "west": "q.block_state('lumstudio:invisible_west') == 0",
+              "south": "q.block_state('lumstudio:invisible_south') == 0",
+              "north_half": "q.block_state('lumstudio:invisible_north') == 1",
+              "east_half": "q.block_state('lumstudio:invisible_east') == 1",
+              "west_half": "q.block_state('lumstudio:invisible_west') == 1",
+              "south_half": "q.block_state('lumstudio:invisible_south') == 1"
             }
           },
           "minecraft:material_instances": {
@@ -793,21 +793,21 @@
         }
       },
       {
-        "condition": "q.block_state('csm:depth') == 5 && q.block_state('csm:direction') == 'north'",
+        "condition": "q.block_state('lumstudio:depth') == 5 && q.block_state('lumstudio:direction') == 'north'",
         "components": {
           "minecraft:geometry": {
             "identifier": "geometry.fluid.6",
             "bone_visibility": {
-              "up": "q.block_state('inv:up') == 0",
-              "down": "q.block_state('inv:down') == 0",
-              "north": "q.block_state('inv:north') == 0",
-              "east": "q.block_state('inv:east') == 0",
-              "west": "q.block_state('inv:west') == 0",
-              "south": "q.block_state('inv:south') == 0",
-              "north_half": "q.block_state('inv:north') == 1",
-              "east_half": "q.block_state('inv:east') == 1",
-              "west_half": "q.block_state('inv:west') == 1",
-              "south_half": "q.block_state('inv:south') == 1"
+              "up": "q.block_state('lumstudio:invisible_up') == 0",
+              "down": "q.block_state('lumstudio:invisible_down') == 0",
+              "north": "q.block_state('lumstudio:invisible_north') == 0",
+              "east": "q.block_state('lumstudio:invisible_east') == 0",
+              "west": "q.block_state('lumstudio:invisible_west') == 0",
+              "south": "q.block_state('lumstudio:invisible_south') == 0",
+              "north_half": "q.block_state('lumstudio:invisible_north') == 1",
+              "east_half": "q.block_state('lumstudio:invisible_east') == 1",
+              "west_half": "q.block_state('lumstudio:invisible_west') == 1",
+              "south_half": "q.block_state('lumstudio:invisible_south') == 1"
             }
           },
           "minecraft:material_instances": {
@@ -827,21 +827,21 @@
         }
       },
       {
-        "condition": "q.block_state('csm:depth') == 5 && q.block_state('csm:direction') == 'east'",
+        "condition": "q.block_state('lumstudio:depth') == 5 && q.block_state('lumstudio:direction') == 'east'",
         "components": {
           "minecraft:geometry": {
             "identifier": "geometry.fluid.6",
             "bone_visibility": {
-              "up": "q.block_state('inv:up') == 0",
-              "down": "q.block_state('inv:down') == 0",
-              "north": "q.block_state('inv:north') == 0",
-              "east": "q.block_state('inv:east') == 0",
-              "west": "q.block_state('inv:west') == 0",
-              "south": "q.block_state('inv:south') == 0",
-              "north_half": "q.block_state('inv:north') == 1",
-              "east_half": "q.block_state('inv:east') == 1",
-              "west_half": "q.block_state('inv:west') == 1",
-              "south_half": "q.block_state('inv:south') == 1"
+              "up": "q.block_state('lumstudio:invisible_up') == 0",
+              "down": "q.block_state('lumstudio:invisible_down') == 0",
+              "north": "q.block_state('lumstudio:invisible_north') == 0",
+              "east": "q.block_state('lumstudio:invisible_east') == 0",
+              "west": "q.block_state('lumstudio:invisible_west') == 0",
+              "south": "q.block_state('lumstudio:invisible_south') == 0",
+              "north_half": "q.block_state('lumstudio:invisible_north') == 1",
+              "east_half": "q.block_state('lumstudio:invisible_east') == 1",
+              "west_half": "q.block_state('lumstudio:invisible_west') == 1",
+              "south_half": "q.block_state('lumstudio:invisible_south') == 1"
             }
           },
           "minecraft:material_instances": {
@@ -868,21 +868,21 @@
         }
       },
       {
-        "condition": "q.block_state('csm:depth') == 5 && q.block_state('csm:direction') == 'south'",
+        "condition": "q.block_state('lumstudio:depth') == 5 && q.block_state('lumstudio:direction') == 'south'",
         "components": {
           "minecraft:geometry": {
             "identifier": "geometry.fluid.6",
             "bone_visibility": {
-              "up": "q.block_state('inv:up') == 0",
-              "down": "q.block_state('inv:down') == 0",
-              "north": "q.block_state('inv:north') == 0",
-              "east": "q.block_state('inv:east') == 0",
-              "west": "q.block_state('inv:west') == 0",
-              "south": "q.block_state('inv:south') == 0",
-              "north_half": "q.block_state('inv:north') == 1",
-              "east_half": "q.block_state('inv:east') == 1",
-              "west_half": "q.block_state('inv:west') == 1",
-              "south_half": "q.block_state('inv:south') == 1"
+              "up": "q.block_state('lumstudio:invisible_up') == 0",
+              "down": "q.block_state('lumstudio:invisible_down') == 0",
+              "north": "q.block_state('lumstudio:invisible_north') == 0",
+              "east": "q.block_state('lumstudio:invisible_east') == 0",
+              "west": "q.block_state('lumstudio:invisible_west') == 0",
+              "south": "q.block_state('lumstudio:invisible_south') == 0",
+              "north_half": "q.block_state('lumstudio:invisible_north') == 1",
+              "east_half": "q.block_state('lumstudio:invisible_east') == 1",
+              "west_half": "q.block_state('lumstudio:invisible_west') == 1",
+              "south_half": "q.block_state('lumstudio:invisible_south') == 1"
             }
           },
           "minecraft:material_instances": {
@@ -909,21 +909,21 @@
         }
       },
       {
-        "condition": "q.block_state('csm:depth') == 5 && q.block_state('csm:direction') == 'west'",
+        "condition": "q.block_state('lumstudio:depth') == 5 && q.block_state('lumstudio:direction') == 'west'",
         "components": {
           "minecraft:geometry": {
             "identifier": "geometry.fluid.6",
             "bone_visibility": {
-              "up": "q.block_state('inv:up') == 0",
-              "down": "q.block_state('inv:down') == 0",
-              "north": "q.block_state('inv:north') == 0",
-              "east": "q.block_state('inv:east') == 0",
-              "west": "q.block_state('inv:west') == 0",
-              "south": "q.block_state('inv:south') == 0",
-              "north_half": "q.block_state('inv:north') == 1",
-              "east_half": "q.block_state('inv:east') == 1",
-              "west_half": "q.block_state('inv:west') == 1",
-              "south_half": "q.block_state('inv:south') == 1"
+              "up": "q.block_state('lumstudio:invisible_up') == 0",
+              "down": "q.block_state('lumstudio:invisible_down') == 0",
+              "north": "q.block_state('lumstudio:invisible_north') == 0",
+              "east": "q.block_state('lumstudio:invisible_east') == 0",
+              "west": "q.block_state('lumstudio:invisible_west') == 0",
+              "south": "q.block_state('lumstudio:invisible_south') == 0",
+              "north_half": "q.block_state('lumstudio:invisible_north') == 1",
+              "east_half": "q.block_state('lumstudio:invisible_east') == 1",
+              "west_half": "q.block_state('lumstudio:invisible_west') == 1",
+              "south_half": "q.block_state('lumstudio:invisible_south') == 1"
             }
           },
           "minecraft:material_instances": {
@@ -950,21 +950,21 @@
         }
       },
       {
-        "condition": "q.block_state('csm:depth') == 5 && q.block_state('csm:direction') == 'none'",
+        "condition": "q.block_state('lumstudio:depth') == 5 && q.block_state('lumstudio:direction') == 'none'",
         "components": {
           "minecraft:geometry": {
             "identifier": "geometry.fluid.6",
             "bone_visibility": {
-              "up": "q.block_state('inv:up') == 0",
-              "down": "q.block_state('inv:down') == 0",
-              "north": "q.block_state('inv:north') == 0",
-              "east": "q.block_state('inv:east') == 0",
-              "west": "q.block_state('inv:west') == 0",
-              "south": "q.block_state('inv:south') == 0",
-              "north_half": "q.block_state('inv:north') == 1",
-              "east_half": "q.block_state('inv:east') == 1",
-              "west_half": "q.block_state('inv:west') == 1",
-              "south_half": "q.block_state('inv:south') == 1"
+              "up": "q.block_state('lumstudio:invisible_up') == 0",
+              "down": "q.block_state('lumstudio:invisible_down') == 0",
+              "north": "q.block_state('lumstudio:invisible_north') == 0",
+              "east": "q.block_state('lumstudio:invisible_east') == 0",
+              "west": "q.block_state('lumstudio:invisible_west') == 0",
+              "south": "q.block_state('lumstudio:invisible_south') == 0",
+              "north_half": "q.block_state('lumstudio:invisible_north') == 1",
+              "east_half": "q.block_state('lumstudio:invisible_east') == 1",
+              "west_half": "q.block_state('lumstudio:invisible_west') == 1",
+              "south_half": "q.block_state('lumstudio:invisible_south') == 1"
             }
           },
           "minecraft:material_instances": {
@@ -978,21 +978,21 @@
         }
       },
       {
-        "condition": "q.block_state('csm:depth') == 6 && q.block_state('csm:direction') == 'north'",
+        "condition": "q.block_state('lumstudio:depth') == 6 && q.block_state('lumstudio:direction') == 'north'",
         "components": {
           "minecraft:geometry": {
             "identifier": "geometry.fluid.7",
             "bone_visibility": {
-              "up": "q.block_state('inv:up') == 0",
-              "down": "q.block_state('inv:down') == 0",
-              "north": "q.block_state('inv:north') == 0",
-              "east": "q.block_state('inv:east') == 0",
-              "west": "q.block_state('inv:west') == 0",
-              "south": "q.block_state('inv:south') == 0",
-              "north_half": "q.block_state('inv:north') == 1",
-              "east_half": "q.block_state('inv:east') == 1",
-              "west_half": "q.block_state('inv:west') == 1",
-              "south_half": "q.block_state('inv:south') == 1"
+              "up": "q.block_state('lumstudio:invisible_up') == 0",
+              "down": "q.block_state('lumstudio:invisible_down') == 0",
+              "north": "q.block_state('lumstudio:invisible_north') == 0",
+              "east": "q.block_state('lumstudio:invisible_east') == 0",
+              "west": "q.block_state('lumstudio:invisible_west') == 0",
+              "south": "q.block_state('lumstudio:invisible_south') == 0",
+              "north_half": "q.block_state('lumstudio:invisible_north') == 1",
+              "east_half": "q.block_state('lumstudio:invisible_east') == 1",
+              "west_half": "q.block_state('lumstudio:invisible_west') == 1",
+              "south_half": "q.block_state('lumstudio:invisible_south') == 1"
             }
           },
           "minecraft:material_instances": {
@@ -1012,21 +1012,21 @@
         }
       },
       {
-        "condition": "q.block_state('csm:depth') == 6 && q.block_state('csm:direction') == 'east'",
+        "condition": "q.block_state('lumstudio:depth') == 6 && q.block_state('lumstudio:direction') == 'east'",
         "components": {
           "minecraft:geometry": {
             "identifier": "geometry.fluid.7",
             "bone_visibility": {
-              "up": "q.block_state('inv:up') == 0",
-              "down": "q.block_state('inv:down') == 0",
-              "north": "q.block_state('inv:north') == 0",
-              "east": "q.block_state('inv:east') == 0",
-              "west": "q.block_state('inv:west') == 0",
-              "south": "q.block_state('inv:south') == 0",
-              "north_half": "q.block_state('inv:north') == 1",
-              "east_half": "q.block_state('inv:east') == 1",
-              "west_half": "q.block_state('inv:west') == 1",
-              "south_half": "q.block_state('inv:south') == 1"
+              "up": "q.block_state('lumstudio:invisible_up') == 0",
+              "down": "q.block_state('lumstudio:invisible_down') == 0",
+              "north": "q.block_state('lumstudio:invisible_north') == 0",
+              "east": "q.block_state('lumstudio:invisible_east') == 0",
+              "west": "q.block_state('lumstudio:invisible_west') == 0",
+              "south": "q.block_state('lumstudio:invisible_south') == 0",
+              "north_half": "q.block_state('lumstudio:invisible_north') == 1",
+              "east_half": "q.block_state('lumstudio:invisible_east') == 1",
+              "west_half": "q.block_state('lumstudio:invisible_west') == 1",
+              "south_half": "q.block_state('lumstudio:invisible_south') == 1"
             }
           },
           "minecraft:material_instances": {
@@ -1053,21 +1053,21 @@
         }
       },
       {
-        "condition": "q.block_state('csm:depth') == 6 && q.block_state('csm:direction') == 'south'",
+        "condition": "q.block_state('lumstudio:depth') == 6 && q.block_state('lumstudio:direction') == 'south'",
         "components": {
           "minecraft:geometry": {
             "identifier": "geometry.fluid.7",
             "bone_visibility": {
-              "up": "q.block_state('inv:up') == 0",
-              "down": "q.block_state('inv:down') == 0",
-              "north": "q.block_state('inv:north') == 0",
-              "east": "q.block_state('inv:east') == 0",
-              "west": "q.block_state('inv:west') == 0",
-              "south": "q.block_state('inv:south') == 0",
-              "north_half": "q.block_state('inv:north') == 1",
-              "east_half": "q.block_state('inv:east') == 1",
-              "west_half": "q.block_state('inv:west') == 1",
-              "south_half": "q.block_state('inv:south') == 1"
+              "up": "q.block_state('lumstudio:invisible_up') == 0",
+              "down": "q.block_state('lumstudio:invisible_down') == 0",
+              "north": "q.block_state('lumstudio:invisible_north') == 0",
+              "east": "q.block_state('lumstudio:invisible_east') == 0",
+              "west": "q.block_state('lumstudio:invisible_west') == 0",
+              "south": "q.block_state('lumstudio:invisible_south') == 0",
+              "north_half": "q.block_state('lumstudio:invisible_north') == 1",
+              "east_half": "q.block_state('lumstudio:invisible_east') == 1",
+              "west_half": "q.block_state('lumstudio:invisible_west') == 1",
+              "south_half": "q.block_state('lumstudio:invisible_south') == 1"
             }
           },
           "minecraft:material_instances": {
@@ -1094,21 +1094,21 @@
         }
       },
       {
-        "condition": "q.block_state('csm:depth') == 6 && q.block_state('csm:direction') == 'west'",
+        "condition": "q.block_state('lumstudio:depth') == 6 && q.block_state('lumstudio:direction') == 'west'",
         "components": {
           "minecraft:geometry": {
             "identifier": "geometry.fluid.7",
             "bone_visibility": {
-              "up": "q.block_state('inv:up') == 0",
-              "down": "q.block_state('inv:down') == 0",
-              "north": "q.block_state('inv:north') == 0",
-              "east": "q.block_state('inv:east') == 0",
-              "west": "q.block_state('inv:west') == 0",
-              "south": "q.block_state('inv:south') == 0",
-              "north_half": "q.block_state('inv:north') == 1",
-              "east_half": "q.block_state('inv:east') == 1",
-              "west_half": "q.block_state('inv:west') == 1",
-              "south_half": "q.block_state('inv:south') == 1"
+              "up": "q.block_state('lumstudio:invisible_up') == 0",
+              "down": "q.block_state('lumstudio:invisible_down') == 0",
+              "north": "q.block_state('lumstudio:invisible_north') == 0",
+              "east": "q.block_state('lumstudio:invisible_east') == 0",
+              "west": "q.block_state('lumstudio:invisible_west') == 0",
+              "south": "q.block_state('lumstudio:invisible_south') == 0",
+              "north_half": "q.block_state('lumstudio:invisible_north') == 1",
+              "east_half": "q.block_state('lumstudio:invisible_east') == 1",
+              "west_half": "q.block_state('lumstudio:invisible_west') == 1",
+              "south_half": "q.block_state('lumstudio:invisible_south') == 1"
             }
           },
           "minecraft:material_instances": {
@@ -1135,21 +1135,21 @@
         }
       },
       {
-        "condition": "q.block_state('csm:depth') == 6 && q.block_state('csm:direction') == 'none'",
+        "condition": "q.block_state('lumstudio:depth') == 6 && q.block_state('lumstudio:direction') == 'none'",
         "components": {
           "minecraft:geometry": {
             "identifier": "geometry.fluid.7",
             "bone_visibility": {
-              "up": "q.block_state('inv:up') == 0",
-              "down": "q.block_state('inv:down') == 0",
-              "north": "q.block_state('inv:north') == 0",
-              "east": "q.block_state('inv:east') == 0",
-              "west": "q.block_state('inv:west') == 0",
-              "south": "q.block_state('inv:south') == 0",
-              "north_half": "q.block_state('inv:north') == 1",
-              "east_half": "q.block_state('inv:east') == 1",
-              "west_half": "q.block_state('inv:west') == 1",
-              "south_half": "q.block_state('inv:south') == 1"
+              "up": "q.block_state('lumstudio:invisible_up') == 0",
+              "down": "q.block_state('lumstudio:invisible_down') == 0",
+              "north": "q.block_state('lumstudio:invisible_north') == 0",
+              "east": "q.block_state('lumstudio:invisible_east') == 0",
+              "west": "q.block_state('lumstudio:invisible_west') == 0",
+              "south": "q.block_state('lumstudio:invisible_south') == 0",
+              "north_half": "q.block_state('lumstudio:invisible_north') == 1",
+              "east_half": "q.block_state('lumstudio:invisible_east') == 1",
+              "west_half": "q.block_state('lumstudio:invisible_west') == 1",
+              "south_half": "q.block_state('lumstudio:invisible_south') == 1"
             }
           },
           "minecraft:material_instances": {
@@ -1163,21 +1163,21 @@
         }
       },
       {
-        "condition": "q.block_state('csm:depth') == 7 && q.block_state('csm:direction') == 'north'",
+        "condition": "q.block_state('lumstudio:depth') == 7 && q.block_state('lumstudio:direction') == 'north'",
         "components": {
           "minecraft:geometry": {
             "identifier": "geometry.fluid.8",
             "bone_visibility": {
-              "up": "q.block_state('inv:up') == 0",
-              "down": "q.block_state('inv:down') == 0",
-              "north": "q.block_state('inv:north') == 0",
-              "east": "q.block_state('inv:east') == 0",
-              "west": "q.block_state('inv:west') == 0",
-              "south": "q.block_state('inv:south') == 0",
-              "north_half": "q.block_state('inv:north') == 1",
-              "east_half": "q.block_state('inv:east') == 1",
-              "west_half": "q.block_state('inv:west') == 1",
-              "south_half": "q.block_state('inv:south') == 1"
+              "up": "q.block_state('lumstudio:invisible_up') == 0",
+              "down": "q.block_state('lumstudio:invisible_down') == 0",
+              "north": "q.block_state('lumstudio:invisible_north') == 0",
+              "east": "q.block_state('lumstudio:invisible_east') == 0",
+              "west": "q.block_state('lumstudio:invisible_west') == 0",
+              "south": "q.block_state('lumstudio:invisible_south') == 0",
+              "north_half": "q.block_state('lumstudio:invisible_north') == 1",
+              "east_half": "q.block_state('lumstudio:invisible_east') == 1",
+              "west_half": "q.block_state('lumstudio:invisible_west') == 1",
+              "south_half": "q.block_state('lumstudio:invisible_south') == 1"
             }
           },
           "minecraft:material_instances": {
@@ -1197,21 +1197,21 @@
         }
       },
       {
-        "condition": "q.block_state('csm:depth') == 7 && q.block_state('csm:direction') == 'east'",
+        "condition": "q.block_state('lumstudio:depth') == 7 && q.block_state('lumstudio:direction') == 'east'",
         "components": {
           "minecraft:geometry": {
             "identifier": "geometry.fluid.8",
             "bone_visibility": {
-              "up": "q.block_state('inv:up') == 0",
-              "down": "q.block_state('inv:down') == 0",
-              "north": "q.block_state('inv:north') == 0",
-              "east": "q.block_state('inv:east') == 0",
-              "west": "q.block_state('inv:west') == 0",
-              "south": "q.block_state('inv:south') == 0",
-              "north_half": "q.block_state('inv:north') == 1",
-              "east_half": "q.block_state('inv:east') == 1",
-              "west_half": "q.block_state('inv:west') == 1",
-              "south_half": "q.block_state('inv:south') == 1"
+              "up": "q.block_state('lumstudio:invisible_up') == 0",
+              "down": "q.block_state('lumstudio:invisible_down') == 0",
+              "north": "q.block_state('lumstudio:invisible_north') == 0",
+              "east": "q.block_state('lumstudio:invisible_east') == 0",
+              "west": "q.block_state('lumstudio:invisible_west') == 0",
+              "south": "q.block_state('lumstudio:invisible_south') == 0",
+              "north_half": "q.block_state('lumstudio:invisible_north') == 1",
+              "east_half": "q.block_state('lumstudio:invisible_east') == 1",
+              "west_half": "q.block_state('lumstudio:invisible_west') == 1",
+              "south_half": "q.block_state('lumstudio:invisible_south') == 1"
             }
           },
           "minecraft:material_instances": {
@@ -1238,21 +1238,21 @@
         }
       },
       {
-        "condition": "q.block_state('csm:depth') == 7 && q.block_state('csm:direction') == 'south'",
+        "condition": "q.block_state('lumstudio:depth') == 7 && q.block_state('lumstudio:direction') == 'south'",
         "components": {
           "minecraft:geometry": {
             "identifier": "geometry.fluid.8",
             "bone_visibility": {
-              "up": "q.block_state('inv:up') == 0",
-              "down": "q.block_state('inv:down') == 0",
-              "north": "q.block_state('inv:north') == 0",
-              "east": "q.block_state('inv:east') == 0",
-              "west": "q.block_state('inv:west') == 0",
-              "south": "q.block_state('inv:south') == 0",
-              "north_half": "q.block_state('inv:north') == 1",
-              "east_half": "q.block_state('inv:east') == 1",
-              "west_half": "q.block_state('inv:west') == 1",
-              "south_half": "q.block_state('inv:south') == 1"
+              "up": "q.block_state('lumstudio:invisible_up') == 0",
+              "down": "q.block_state('lumstudio:invisible_down') == 0",
+              "north": "q.block_state('lumstudio:invisible_north') == 0",
+              "east": "q.block_state('lumstudio:invisible_east') == 0",
+              "west": "q.block_state('lumstudio:invisible_west') == 0",
+              "south": "q.block_state('lumstudio:invisible_south') == 0",
+              "north_half": "q.block_state('lumstudio:invisible_north') == 1",
+              "east_half": "q.block_state('lumstudio:invisible_east') == 1",
+              "west_half": "q.block_state('lumstudio:invisible_west') == 1",
+              "south_half": "q.block_state('lumstudio:invisible_south') == 1"
             }
           },
           "minecraft:material_instances": {
@@ -1279,21 +1279,21 @@
         }
       },
       {
-        "condition": "q.block_state('csm:depth') == 7 && q.block_state('csm:direction') == 'west'",
+        "condition": "q.block_state('lumstudio:depth') == 7 && q.block_state('lumstudio:direction') == 'west'",
         "components": {
           "minecraft:geometry": {
             "identifier": "geometry.fluid.8",
             "bone_visibility": {
-              "up": "q.block_state('inv:up') == 0",
-              "down": "q.block_state('inv:down') == 0",
-              "north": "q.block_state('inv:north') == 0",
-              "east": "q.block_state('inv:east') == 0",
-              "west": "q.block_state('inv:west') == 0",
-              "south": "q.block_state('inv:south') == 0",
-              "north_half": "q.block_state('inv:north') == 1",
-              "east_half": "q.block_state('inv:east') == 1",
-              "west_half": "q.block_state('inv:west') == 1",
-              "south_half": "q.block_state('inv:south') == 1"
+              "up": "q.block_state('lumstudio:invisible_up') == 0",
+              "down": "q.block_state('lumstudio:invisible_down') == 0",
+              "north": "q.block_state('lumstudio:invisible_north') == 0",
+              "east": "q.block_state('lumstudio:invisible_east') == 0",
+              "west": "q.block_state('lumstudio:invisible_west') == 0",
+              "south": "q.block_state('lumstudio:invisible_south') == 0",
+              "north_half": "q.block_state('lumstudio:invisible_north') == 1",
+              "east_half": "q.block_state('lumstudio:invisible_east') == 1",
+              "west_half": "q.block_state('lumstudio:invisible_west') == 1",
+              "south_half": "q.block_state('lumstudio:invisible_south') == 1"
             }
           },
           "minecraft:material_instances": {
@@ -1320,21 +1320,21 @@
         }
       },
       {
-        "condition": "q.block_state('csm:depth') == 7 && q.block_state('csm:direction') == 'none'",
+        "condition": "q.block_state('lumstudio:depth') == 7 && q.block_state('lumstudio:direction') == 'none'",
         "components": {
           "minecraft:geometry": {
             "identifier": "geometry.fluid.8",
             "bone_visibility": {
-              "up": "q.block_state('inv:up') == 0",
-              "down": "q.block_state('inv:down') == 0",
-              "north": "q.block_state('inv:north') == 0",
-              "east": "q.block_state('inv:east') == 0",
-              "west": "q.block_state('inv:west') == 0",
-              "south": "q.block_state('inv:south') == 0",
-              "north_half": "q.block_state('inv:north') == 1",
-              "east_half": "q.block_state('inv:east') == 1",
-              "west_half": "q.block_state('inv:west') == 1",
-              "south_half": "q.block_state('inv:south') == 1"
+              "up": "q.block_state('lumstudio:invisible_up') == 0",
+              "down": "q.block_state('lumstudio:invisible_down') == 0",
+              "north": "q.block_state('lumstudio:invisible_north') == 0",
+              "east": "q.block_state('lumstudio:invisible_east') == 0",
+              "west": "q.block_state('lumstudio:invisible_west') == 0",
+              "south": "q.block_state('lumstudio:invisible_south') == 0",
+              "north_half": "q.block_state('lumstudio:invisible_north') == 1",
+              "east_half": "q.block_state('lumstudio:invisible_east') == 1",
+              "west_half": "q.block_state('lumstudio:invisible_west') == 1",
+              "south_half": "q.block_state('lumstudio:invisible_south') == 1"
             }
           },
           "minecraft:material_instances": {
@@ -1348,21 +1348,21 @@
         }
       },
       {
-        "condition": "q.block_state('csm:depth') == 8 && q.block_state('csm:direction') == 'north'",
+        "condition": "q.block_state('lumstudio:depth') == 8 && q.block_state('lumstudio:direction') == 'north'",
         "components": {
           "minecraft:geometry": {
             "identifier": "geometry.fluid.8",
             "bone_visibility": {
-              "up": "q.block_state('inv:up') == 0",
-              "down": "q.block_state('inv:down') == 0",
-              "north": "q.block_state('inv:north') == 0",
-              "east": "q.block_state('inv:east') == 0",
-              "west": "q.block_state('inv:west') == 0",
-              "south": "q.block_state('inv:south') == 0",
-              "north_half": "q.block_state('inv:north') == 1",
-              "east_half": "q.block_state('inv:east') == 1",
-              "west_half": "q.block_state('inv:west') == 1",
-              "south_half": "q.block_state('inv:south') == 1"
+              "up": "q.block_state('lumstudio:invisible_up') == 0",
+              "down": "q.block_state('lumstudio:invisible_down') == 0",
+              "north": "q.block_state('lumstudio:invisible_north') == 0",
+              "east": "q.block_state('lumstudio:invisible_east') == 0",
+              "west": "q.block_state('lumstudio:invisible_west') == 0",
+              "south": "q.block_state('lumstudio:invisible_south') == 0",
+              "north_half": "q.block_state('lumstudio:invisible_north') == 1",
+              "east_half": "q.block_state('lumstudio:invisible_east') == 1",
+              "west_half": "q.block_state('lumstudio:invisible_west') == 1",
+              "south_half": "q.block_state('lumstudio:invisible_south') == 1"
             }
           },
           "minecraft:material_instances": {
@@ -1382,21 +1382,21 @@
         }
       },
       {
-        "condition": "q.block_state('csm:depth') == 8 && q.block_state('csm:direction') == 'east'",
+        "condition": "q.block_state('lumstudio:depth') == 8 && q.block_state('lumstudio:direction') == 'east'",
         "components": {
           "minecraft:geometry": {
             "identifier": "geometry.fluid.8",
             "bone_visibility": {
-              "up": "q.block_state('inv:up') == 0",
-              "down": "q.block_state('inv:down') == 0",
-              "north": "q.block_state('inv:north') == 0",
-              "east": "q.block_state('inv:east') == 0",
-              "west": "q.block_state('inv:west') == 0",
-              "south": "q.block_state('inv:south') == 0",
-              "north_half": "q.block_state('inv:north') == 1",
-              "east_half": "q.block_state('inv:east') == 1",
-              "west_half": "q.block_state('inv:west') == 1",
-              "south_half": "q.block_state('inv:south') == 1"
+              "up": "q.block_state('lumstudio:invisible_up') == 0",
+              "down": "q.block_state('lumstudio:invisible_down') == 0",
+              "north": "q.block_state('lumstudio:invisible_north') == 0",
+              "east": "q.block_state('lumstudio:invisible_east') == 0",
+              "west": "q.block_state('lumstudio:invisible_west') == 0",
+              "south": "q.block_state('lumstudio:invisible_south') == 0",
+              "north_half": "q.block_state('lumstudio:invisible_north') == 1",
+              "east_half": "q.block_state('lumstudio:invisible_east') == 1",
+              "west_half": "q.block_state('lumstudio:invisible_west') == 1",
+              "south_half": "q.block_state('lumstudio:invisible_south') == 1"
             }
           },
           "minecraft:material_instances": {
@@ -1423,21 +1423,21 @@
         }
       },
       {
-        "condition": "q.block_state('csm:depth') == 8 && q.block_state('csm:direction') == 'south'",
+        "condition": "q.block_state('lumstudio:depth') == 8 && q.block_state('lumstudio:direction') == 'south'",
         "components": {
           "minecraft:geometry": {
             "identifier": "geometry.fluid.8",
             "bone_visibility": {
-              "up": "q.block_state('inv:up') == 0",
-              "down": "q.block_state('inv:down') == 0",
-              "north": "q.block_state('inv:north') == 0",
-              "east": "q.block_state('inv:east') == 0",
-              "west": "q.block_state('inv:west') == 0",
-              "south": "q.block_state('inv:south') == 0",
-              "north_half": "q.block_state('inv:north') == 1",
-              "east_half": "q.block_state('inv:east') == 1",
-              "west_half": "q.block_state('inv:west') == 1",
-              "south_half": "q.block_state('inv:south') == 1"
+              "up": "q.block_state('lumstudio:invisible_up') == 0",
+              "down": "q.block_state('lumstudio:invisible_down') == 0",
+              "north": "q.block_state('lumstudio:invisible_north') == 0",
+              "east": "q.block_state('lumstudio:invisible_east') == 0",
+              "west": "q.block_state('lumstudio:invisible_west') == 0",
+              "south": "q.block_state('lumstudio:invisible_south') == 0",
+              "north_half": "q.block_state('lumstudio:invisible_north') == 1",
+              "east_half": "q.block_state('lumstudio:invisible_east') == 1",
+              "west_half": "q.block_state('lumstudio:invisible_west') == 1",
+              "south_half": "q.block_state('lumstudio:invisible_south') == 1"
             }
           },
           "minecraft:material_instances": {
@@ -1464,21 +1464,21 @@
         }
       },
       {
-        "condition": "q.block_state('csm:depth') == 8 && q.block_state('csm:direction') == 'west'",
+        "condition": "q.block_state('lumstudio:depth') == 8 && q.block_state('lumstudio:direction') == 'west'",
         "components": {
           "minecraft:geometry": {
             "identifier": "geometry.fluid.8",
             "bone_visibility": {
-              "up": "q.block_state('inv:up') == 0",
-              "down": "q.block_state('inv:down') == 0",
-              "north": "q.block_state('inv:north') == 0",
-              "east": "q.block_state('inv:east') == 0",
-              "west": "q.block_state('inv:west') == 0",
-              "south": "q.block_state('inv:south') == 0",
-              "north_half": "q.block_state('inv:north') == 1",
-              "east_half": "q.block_state('inv:east') == 1",
-              "west_half": "q.block_state('inv:west') == 1",
-              "south_half": "q.block_state('inv:south') == 1"
+              "up": "q.block_state('lumstudio:invisible_up') == 0",
+              "down": "q.block_state('lumstudio:invisible_down') == 0",
+              "north": "q.block_state('lumstudio:invisible_north') == 0",
+              "east": "q.block_state('lumstudio:invisible_east') == 0",
+              "west": "q.block_state('lumstudio:invisible_west') == 0",
+              "south": "q.block_state('lumstudio:invisible_south') == 0",
+              "north_half": "q.block_state('lumstudio:invisible_north') == 1",
+              "east_half": "q.block_state('lumstudio:invisible_east') == 1",
+              "west_half": "q.block_state('lumstudio:invisible_west') == 1",
+              "south_half": "q.block_state('lumstudio:invisible_south') == 1"
             }
           },
           "minecraft:material_instances": {
@@ -1505,21 +1505,21 @@
         }
       },
       {
-        "condition": "q.block_state('csm:depth') == 8 && q.block_state('csm:direction') == 'none'",
+        "condition": "q.block_state('lumstudio:depth') == 8 && q.block_state('lumstudio:direction') == 'none'",
         "components": {
           "minecraft:geometry": {
             "identifier": "geometry.fluid.8",
             "bone_visibility": {
-              "up": "q.block_state('inv:up') == 0",
-              "down": "q.block_state('inv:down') == 0",
-              "north": "q.block_state('inv:north') == 0",
-              "east": "q.block_state('inv:east') == 0",
-              "west": "q.block_state('inv:west') == 0",
-              "south": "q.block_state('inv:south') == 0",
-              "north_half": "q.block_state('inv:north') == 1",
-              "east_half": "q.block_state('inv:east') == 1",
-              "west_half": "q.block_state('inv:west') == 1",
-              "south_half": "q.block_state('inv:south') == 1"
+              "up": "q.block_state('lumstudio:invisible_up') == 0",
+              "down": "q.block_state('lumstudio:invisible_down') == 0",
+              "north": "q.block_state('lumstudio:invisible_north') == 0",
+              "east": "q.block_state('lumstudio:invisible_east') == 0",
+              "west": "q.block_state('lumstudio:invisible_west') == 0",
+              "south": "q.block_state('lumstudio:invisible_south') == 0",
+              "north_half": "q.block_state('lumstudio:invisible_north') == 1",
+              "east_half": "q.block_state('lumstudio:invisible_east') == 1",
+              "west_half": "q.block_state('lumstudio:invisible_west') == 1",
+              "south_half": "q.block_state('lumstudio:invisible_south') == 1"
             }
           },
           "minecraft:material_instances": {

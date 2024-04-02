@@ -28,9 +28,9 @@ world.afterEvents.itemUse.subscribe(({block,itemStack,source:player})=>{
     player.getComponent("equippable").setEquipment("Mainhand",new ItemStack("bucket"))
     nBlock.setPermutation(BlockPermutation.resolve(tag.slice(7)))
   };
-  if (nBlock.hasTag("fluid") && nBlock.permutation.getState("csm:depth") == maxSize-1 && itemStack.typeId == "minecraft:bucket") {
+  if (nBlock.hasTag("fluid") && nBlock.permutation.getState("lumstudio:depth") == maxSize-1 && itemStack.typeId == "minecraft:bucket") {
     nBlock.setPermutation(air);
-    player.getComponent("equippable").setEquipment("Mainhand",new ItemStack("csm:oil_bucket"))
+    player.getComponent("equippable").setEquipment("Mainhand",new ItemStack("lumstudio:oil_bucket"))
   }
 
 })
@@ -119,7 +119,7 @@ system.runInterval(() => {
     }
     // Fluid fog
     if (player.dimension.getBlock(player.getHeadLocation()).hasTag('fluid')) {
-      player.runCommand("fog @s push csm:custom_fluid_fog fluid_fog");
+      player.runCommand("fog @s push lumstudio:custom_fluid_fog fluid_fog");
     } else {
       player.runCommand("fog @s remove fluid_fog");
     }
@@ -136,7 +136,7 @@ system.runInterval(() => {
 },2);
 function clearPerm(perm){
   for (let dir of ["south","north","east","west","down","up"]){
-    perm= perm.withState("inv:"+dir,0)
+    perm= perm.withState("lumstudio:invisible_"+dir,0)
   };
   return perm
 }
@@ -145,12 +145,12 @@ function allNear(b,depth,tag){
   for (let dir of dirs){
     let block = b[dir]();
     if (isEmpty(block)){
-      block.setPermutation(clearPerm(b.permutation).withState("csm:depth",depth).withState("inv:"+revers[dirs.indexOf(dir)],2));
-      b.setPermutation(b.permutation.withState("inv:"+dir,1))
+      block.setPermutation(clearPerm(b.permutation).withState("lumstudio:depth",depth).withState("lumstudio:invisible_"+revers[dirs.indexOf(dir)],2));
+      b.setPermutation(b.permutation.withState("lumstudio:invisible_"+dir,1))
     }
-    if (block.hasTag(tag) && block.permutation.getState("csm:depth") < depth){
-      block.setPermutation(block.permutation.withState("csm:depth",depth).withState("inv:"+revers[dirs.indexOf(dir)],2));
-      b.setPermutation(b.permutation.withState("inv:"+dir,1))
+    if (block.hasTag(tag) && block.permutation.getState("lumstudio:depth") < depth){
+      block.setPermutation(block.permutation.withState("lumstudio:depth",depth).withState("lumstudio:invisible_"+revers[dirs.indexOf(dir)],2));
+      b.setPermutation(b.permutation.withState("lumstudio:invisible_"+dir,1))
     }
   }
 }
@@ -161,7 +161,7 @@ function isEmpty(b){
 function fluidTick(b,tag) {
   let maxSize = b.hasTag("7-length") ? 8 : 7;
   let perm = b.permutation;
-  let depth = perm.getState("csm:depth");
+  let depth = perm.getState("lumstudio:depth");
   let isSource = depth == maxSize-1 || depth == maxSize+1;
   //check dying
   if (!isSource){
@@ -169,44 +169,44 @@ function fluidTick(b,tag) {
     let live;
     if (depth===maxSize) {
       live = b.above()?.hasTag(tag);
-      b.setPermutation(b.permutation.withState("inv:up",1));
+      b.setPermutation(b.permutation.withState("lumstudio:invisible_up",1));
 
     } else 
     {
       live = st.some((dir)=>{
         let block = b[dir]();
         if (!block?.hasTag(tag)) return false;
-        let depth2 = block.permutation.getState("csm:depth");
-        if (depth2 < depth) b.permutation.withState("inv:"+dir,1)
+        let depth2 = block.permutation.getState("lumstudio:depth");
+        if (depth2 < depth) b.permutation.withState("lumstudio:invisible_"+dir,1)
         return depth2 > depth
       })
     }
-    if (!live && b.below()?.hasTag(tag)) b.below()?.setPermutation(b.below().permutation.withState("inv:up",1))
+    if (!live && b.below()?.hasTag(tag)) b.below()?.setPermutation(b.below().permutation.withState("lumstudio:invisible_up",1))
     if (!live) b.setPermutation(air);
     
     // choosing variant and spreading
     let bel = b.below();
     if (depth===maxSize) {
       if (!isEmpty(bel) && !bel.hasTag(tag)) allNear(b,maxSize-2,tag);
-      if (isEmpty(bel)) bel.setPermutation(perm.withState("csm:depth",maxSize))
+      if (isEmpty(bel)) bel.setPermutation(perm.withState("lumstudio:depth",maxSize))
     } else if (depth !== 1)
     {
       if (!isEmpty(bel) && !bel.hasTag(tag)) allNear(b,depth-1,tag);
-      if (isEmpty(bel)) bel.setPermutation(perm.withState("csm:depth",maxSize));
+      if (isEmpty(bel)) bel.setPermutation(perm.withState("lumstudio:depth",maxSize));
       
-      if (b.above()?.hasTag(tag)) b.setPermutation(perm.withState("csm:depth",maxSize));
-    } else if (isEmpty(bel)) bel.setPermutation(perm.withState("csm:depth",maxSize));
+      if (b.above()?.hasTag(tag)) b.setPermutation(perm.withState("lumstudio:depth",maxSize));
+    } else if (isEmpty(bel)) bel.setPermutation(perm.withState("lumstudio:depth",maxSize));
   }else
   {
-    b.setPermutation(perm.withState("csm:depth",b.above()?.hasTag(tag) ? maxSize+1 : maxSize-1 ));
+    b.setPermutation(perm.withState("lumstudio:depth",b.above()?.hasTag(tag) ? maxSize+1 : maxSize-1 ));
     allNear(b,maxSize-2,tag);
-    if (isEmpty(b.below())) b.below().setPermutation(perm.withState("csm:depth",maxSize))
+    if (isEmpty(b.below())) b.below().setPermutation(perm.withState("lumstudio:depth",maxSize))
   }
 }
 
 system.afterEvents.scriptEventReceive.subscribe((event)=>{
   let {sourceBlock:b,message,id} = event;
-  if (id !== "csm:fluid" ) return;
+  if (id !== "lumstudio:fluid" ) return;
   if (!b) return;
   if (
     world.getAllPlayers().every(

@@ -2,7 +2,7 @@
   "format_version": "1.20.30",
   "minecraft:item": {
     "description": {
-      "identifier": "csm:oil_bucket",
+      "identifier": "lumstudio:oil_bucket",
       "menu_category": {
         "category": "items"
       }
@@ -12,7 +12,7 @@
       "minecraft:icon": {
         "texture": "oil_bucket" 
       },
-      "tag:placer:csm:oil":{}
+      "tag:placer:lumstudio:oil":{}
     }
   }
 }

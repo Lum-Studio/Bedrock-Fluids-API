@@ -2,7 +2,7 @@
   "format_version": "1.16.100",
   "minecraft:fog_settings": {
     "description": {
-      "identifier": "csm:custom_fluid_fog"
+      "identifier": "lumstudio:custom_fluid_fog"
     },
     "distance": {
       "air": {
