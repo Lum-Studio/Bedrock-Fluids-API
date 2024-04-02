@@ -32,7 +32,8 @@ export class FluidQueue{
     add(block){
         if (!isRunning) console.warn("§cThe fluid queue is stopped, you can't use any methods")
         else if (block.typeId === this.type){
-            if (this.#marked.any((v)=>block.x === v.x && block.y === v.y && block.z === v.z)){
+            // Equivalent of .any in js is .some
+            if (this.#marked.some((v)=>block.x === v.x && block.y === v.y && block.z === v.z)){
                 this.#instant.push(block);
                 // delete mark
                 this.#marked.splice(this.#marked.findIndex((v)=>block.x === v.x && block.y === v.y && block.z === v.z),1);
@@ -54,7 +55,7 @@ export class FluidQueue{
     }
     /**
      * Starts the fluid flow, spreading and changing
-     * @param {number} countPerTick 
+     * @param {number} countPerTick Runs all registered fluids and their operation for x amount of times in a tick
      */
     run(countPerTick){
         this.stop();
