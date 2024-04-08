@@ -111,7 +111,7 @@ world.beforeEvents.itemUseOn.subscribe((ev) => {
       iS.amount > 1 ? iS.amount-- : (iS = undefined);
       equippment.setEquipment("Mainhand", iS);
     });
-  } catch {}
+  } catch { }
 });
 
 system.runInterval(() => {
