@@ -9,6 +9,20 @@ import {
 import { FluidQueue } from "./queue";
 
 const air = BlockPermutation.resolve("air");
+const directions = [
+  { dx: 0, dy: 0, dz: -1, facing: "n" },
+  { dx: 0, dy: 0, dz: 1, facing: "s" },
+  { dx: 1, dy: 0, dz: 0, facing: "e" },
+  { dx: -1, dy: 0, dz: 0, facing: "w" },
+];
+const invisibleStatesNames = [
+  "lumstudio:invisible_north",
+  "lumstudio:invisible_south",
+  "lumstudio:invisible_east",
+  "lumstudio:invisible_west",
+  "lumstudio:invisible_up",
+  "lumstudio:invisible_down"
+];
 
 let currentTickRunned = false;
 
@@ -178,7 +192,53 @@ for (const queue of Object.values(Queues)) {
   queue.run(20);
 }
 /**
- * Spreads the fluid.
+ * 
+ * @param {BlockPermutation} perm1 
+ * @param {BlockPermutation} perm2 
+ */
+function areEqualPerms(perm1, perm2) {
+  return Object.keys(perm1).every((value) => perm1[value] === perm1[value] || typeof perm1 === "function")
+}
+/**
+ * Refreshes the fluid states.
+ * @param {BlockPermutation} permutation The fluid block permutation.
+ * @param {Record<string, string | number | boolean>[]} neighborStates States of Neighbor fluids
+ * @param {boolean} below 
+ * @returns new permutation
+ */
+function refreshStates(permutation, neighborStates, below) {
+  let newPerm = permutation.withState(invisibleStatesNames[5], +below);
+  for (let i = 0; i < 4; i++) {
+    if (neighborStates[i]) {
+      const nDepth = neighborStates[i]["lumstudio:depth"];
+      const depth = permutation.getState("lumstudio:depth");
+      newPerm = newPerm.withState(invisibleStatesNames[i], depth < nDepth ? 2 : 0)
+    }
+  }
+  return newPerm;
+}
+
+/**
+ * Refreshes the fluid states.
+ * @param {BlockPermutation} permutation The fluid block permutation.
+ * @param {Record<string, string | number | boolean>[]} neighborStates States of Neighbor fluids
+ * @returns new permutation
+ */
+function refreshStatesForFalling(permutation, neighborStates, below, above) {
+  let newPerm = permutation
+    .withState(invisibleStatesNames[4], +above)
+    .withState(invisibleStatesNames[5], +below);
+  for (let i = 0; i < 4; i++) {
+    if (neighborStates[i]) {
+      const nDepth = neighborStates[i]["lumstudio:depth"];
+      const depth = permutation.getState("lumstudio:depth");
+      // TODO: add test for conections with source and non-source depths
+      newPerm = newPerm.withState(invisibleStatesNames[i], depth < nDepth ? 2 : 0)
+    }
+  }
+}
+/**
+ * Updates the fluid.
  * @param {Block} b The fluid block.
  */
 function fluidBasic(b) {
@@ -191,12 +251,6 @@ function fluidBasic(b) {
     depth === maxSpreadDistance - 1 ||
     depth === maxSpreadDistance + 1;
   const isFallingFluid = depth >= maxSpreadDistance; // full fluid blocks
-  const directions = [
-    { dx: 0, dy: 0, dz: -1, facing: "n" },
-    { dx: 0, dy: 0, dz: 1, facing: "s" },
-    { dx: 1, dy: 0, dz: 0, facing: "e" },
-    { dx: -1, dy: 0, dz: 0, facing: "w" },
-  ];
   const neighborStates = [];
   let neighborDepth = 1;
   for (const dir of directions) { // Geting all States
@@ -209,16 +263,20 @@ function fluidBasic(b) {
       const states = neighbor.permutation.getAllStates();
       neighborStates.push(states)
       if (neighborDepth < states["lumstudio:depth"])
-        neighborDepth = states["lumstudio:depth"]
-    }
+        neighborDepth = states["lumstudio:depth"];
+    } else
+      neighborStates.push(undefined)
   };
   const hasFluidAbove = b.above().typeId === b.typeId;
+  // should dry test
   if (
     (isFallingFluid ? !hasFluidAbove : neighborDepth <= depth) && !isSource
   ) {
+    // TODO: marking neighbors
     b.setPermutation(air);
     return
   }
+  // Spreading
 
   // It is not deleted because i didn't write this code
   // Go in all directions
