@@ -216,7 +216,8 @@ function fluidBasic(b) {
   if (
     (isFallingFluid ? !hasFluidAbove : neighborDepth <= depth) && !isSource
   ) {
-    //die
+    b.setPermutation(air);
+    return
   }
 
   // It is not deleted because i didn't write this code
