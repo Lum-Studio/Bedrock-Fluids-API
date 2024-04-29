@@ -185,47 +185,76 @@ function fluidBasic(b) {
   const fluidBlock = b.permutation;
   const maxSpreadDistance = 5;
   const dimension = b.dimension;
+  const fluidStates = fluidBlock.getAllStates();
+  const depth = fluidStates["lumstudio:depth"];
+  const isSource =
+    depth === maxSpreadDistance - 1 ||
+    depth === maxSpreadDistance + 1;
+  const isFallingFluid = depth >= maxSpreadDistance; // full fluid blocks
   const directions = [
     { dx: 0, dy: 0, dz: -1, facing: "n" },
     { dx: 0, dy: 0, dz: 1, facing: "s" },
     { dx: 1, dy: 0, dz: 0, facing: "e" },
     { dx: -1, dy: 0, dz: 0, facing: "w" },
   ];
+  const neighborStates = [];
+  let neighborDepth = 1;
+  for (const dir of directions) { // Geting all States
+    const neighbor = b.offset({
+      x: dir.dx,
+      y: 0,
+      z: dir.dz
+    });
+    if (neighbor?.typeId === b.typeId) {
+      const states = neighbor.permutation.getAllStates();
+      neighborStates.push(states)
+      if (neighborDepth < states["lumstudio:depth"])
+        neighborDepth = states["lumstudio:depth"]
+    }
+  };
+  const hasFluidAbove = b.above().typeId === b.typeId;
+  if (
+    (isFallingFluid ? !hasFluidAbove : neighborDepth <= depth) && !isSource
+  ) {
+    //die
+  }
+
+  // It is not deleted because i didn't write this code
   // Go in all directions
   // TODO: Make it attempt to go in all directions if no obstructions
-  for (const dir of directions) {
-    let spreadDistance = 0;
-    let currentBlock = b;
-    while (spreadDistance < maxSpreadDistance) {
-      const currentX = currentBlock.location.x + dir.dx;
-      const currentY = currentBlock.location.y + dir.dy;
-      const currentZ = currentBlock.location.z + dir.dz;
-      const neighbor = dimension.getBlock(currentX, currentY, currentZ);
-      const neighborDir = fluidBlock.withState(
-        "lumstudio:direction",
-        dir.facing
-      );
-      neighbor.setPermutation(neighborDir);
-      if (neighbor.hasTag("fluid") && neighbor !== b) {
-        const neighborPerm = neighbor.permutation;
-        const depth = neighborPerm.getState("lumstudio:depth") || 0;
-        if (depth > 0) {
-          neighbor.setPermutation(
-            neighborPerm.withState("lumstudio:depth", depth - 1)
-          );
-        }
-      }
+  // for (const dir of directions) {
+  //   let spreadDistance = 0;
+  //   let currentBlock = b;
+  //   while (spreadDistance < maxSpreadDistance) {
+  //     const currentX = currentBlock.location.x + dir.dx;
+  //     const currentY = currentBlock.location.y + dir.dy;
+  //     const currentZ = currentBlock.location.z + dir.dz;
+  //     const neighbor = dimension.getBlock(currentX, currentY, currentZ);
+  //     const neighborDir = fluidBlock.withState(
+  //       "lumstudio:direction",
+  //       dir.facing
+  //     );
+  //     neighbor.setPermutation(neighborDir);
+  //     if (neighbor.hasTag("fluid") && neighbor !== b) {
+  //       const neighborPerm = neighbor.permutation;
+  //       const depth = neighborPerm.getState("lumstudio:depth") || 0;
+  //       if (depth > 0) {
+  //         neighbor.setPermutation(
+  //           neighborPerm.withState("lumstudio:depth", depth - 1)
+  //         );
+  //       }
+  //     }
 
-      // Stop spreading if a non-fluid block is encountered
-      if (!neighbor.isAir && !neighbor.hasTag("fluid")) {
-        break;
-      }
+  //     // Stop spreading if a non-fluid block is encountered
+  //     if (!neighbor.isAir && !neighbor.hasTag("fluid")) {
+  //       break;
+  //     }
 
-      // Move to the next neighboring block in the current direction
-      currentBlock = neighbor;
-      spreadDistance++;
-    }
-  }
+  //     // Move to the next neighboring block in the current direction
+  //     currentBlock = neighbor;
+  //     spreadDistance++;
+  //   }
+  // }
 }
 
 system.afterEvents.scriptEventReceive.subscribe((event) => {
