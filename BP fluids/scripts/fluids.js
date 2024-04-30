@@ -197,7 +197,9 @@ for (const queue of Object.values(Queues)) {
  * @param {BlockPermutation} perm2 
  */
 function areEqualPerms(perm1, perm2) {
-  return Object.keys(perm1).every((value) => perm1[value] === perm1[value] || typeof perm1 === "function")
+  const states1 = perm1.getAllStates();
+  const states2 = perm2.getAllStates();
+  return Object.keys(states1).every((value) => states1[value] === states2[value])
 }
 /**
  * Refreshes the fluid states.
@@ -222,9 +224,12 @@ function refreshStates(permutation, neighborStates, below) {
  * Refreshes the fluid states.
  * @param {BlockPermutation} permutation The fluid block permutation.
  * @param {Record<string, string | number | boolean>[]} neighborStates States of Neighbor fluids
+ * @param {boolean} above 
+ * @param {boolean} below 
+ * @param {boolean} isSource 
  * @returns new permutation
  */
-function refreshStatesForFalling(permutation, neighborStates, below, above) {
+function refreshStatesForFalling(permutation, neighborStates, below, above, isSource) {
   let newPerm = permutation
     .withState(invisibleStatesNames[4], +above)
     .withState(invisibleStatesNames[5], +below);
@@ -233,7 +238,8 @@ function refreshStatesForFalling(permutation, neighborStates, below, above) {
       const nDepth = neighborStates[i]["lumstudio:depth"];
       const depth = permutation.getState("lumstudio:depth");
       // TODO: add test for conections with source and non-source depths
-      newPerm = newPerm.withState(invisibleStatesNames[i], depth < nDepth ? 2 : 0)
+      const isMicro = nDepth === depth - 1 - isSource;// analog to (isSource ? nDepth === depth - 2 : nDepth === depth - 1)
+      newPerm = newPerm.withState(invisibleStatesNames[i], depth < nDepth ? 2 : +isMicro)
     }
   }
 }
@@ -268,6 +274,7 @@ function fluidBasic(b) {
       neighborStates.push(undefined)
   };
   const hasFluidAbove = b.above().typeId === b.typeId;
+  const hasFluidBelow = b.below().typeId === b.typeId;
   // should dry test
   if (
     (isFallingFluid ? !hasFluidAbove : neighborDepth <= depth) && !isSource
@@ -275,6 +282,14 @@ function fluidBasic(b) {
     // TODO: marking neighbors
     b.setPermutation(air);
     return
+  }
+  if (isFallingFluid) {
+    fluidBlock = refreshStatesForFalling(fluidBlock, neighborStates, hasFluidBelow, hasFluidAbove, isSource)
+  } else {
+    fluidBlock = refreshStates(fluidBlock, neighborStates, hasFluidBelow)
+  }
+  if (!areEqualPerms(b.permutation, fluidBlock)) {
+    // TODO: marking neighbors
   }
   // Spreading
 
