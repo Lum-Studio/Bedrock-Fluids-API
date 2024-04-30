@@ -294,44 +294,6 @@ function fluidBasic(b) {
   if (!areEqualPerms(b.permutation, fluidBlock)) {
     // TODO: marking neighbors
   }
-  // Spreading
-
-  // It is not deleted because i didn't write this code
-  // Go in all directions
-  // TODO: Make it attempt to go in all directions if no obstructions
-  // for (const dir of directions) {
-  //   let spreadDistance = 0;
-  //   let currentBlock = b;
-  //   while (spreadDistance < maxSpreadDistance) {
-  //     const currentX = currentBlock.location.x + dir.dx;
-  //     const currentY = currentBlock.location.y + dir.dy;
-  //     const currentZ = currentBlock.location.z + dir.dz;
-  //     const neighbor = dimension.getBlock(currentX, currentY, currentZ);
-  //     const neighborDir = fluidBlock.withState(
-  //       "lumstudio:direction",
-  //       dir.facing
-  //     );
-  //     neighbor.setPermutation(neighborDir);
-  //     if (neighbor.hasTag("fluid") && neighbor !== b) {
-  //       const neighborPerm = neighbor.permutation;
-  //       const depth = neighborPerm.getState("lumstudio:depth") || 0;
-  //       if (depth > 0) {
-  //         neighbor.setPermutation(
-  //           neighborPerm.withState("lumstudio:depth", depth - 1)
-  //         );
-  //       }
-  //     }
-
-  //     // Stop spreading if a non-fluid block is encountered
-  //     if (!neighbor.isAir && !neighbor.hasTag("fluid")) {
-  //       break;
-  //     }
-
-  //     // Move to the next neighboring block in the current direction
-  //     currentBlock = neighbor;
-  //     spreadDistance++;
-  //   }
-  // }
 }
 
 system.afterEvents.scriptEventReceive.subscribe((event) => {
