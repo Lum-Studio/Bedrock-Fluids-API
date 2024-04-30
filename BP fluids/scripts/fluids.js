@@ -9,16 +9,23 @@ import {
 import { FluidQueue } from "./queue";
 
 const air = BlockPermutation.resolve("air");
+const directionNums = {
+  "n": 0,
+  "none": 0,
+  "e": 1,
+  "s": 2,
+  "w": 3,
+}
 const directions = [
   { dx: 0, dy: 0, dz: -1, facing: "n" },
-  { dx: 0, dy: 0, dz: 1, facing: "s" },
   { dx: 1, dy: 0, dz: 0, facing: "e" },
+  { dx: 0, dy: 0, dz: 1, facing: "s" },
   { dx: -1, dy: 0, dz: 0, facing: "w" },
 ];
 const invisibleStatesNames = [
   "lumstudio:invisible_north",
-  "lumstudio:invisible_south",
   "lumstudio:invisible_east",
+  "lumstudio:invisible_south",
   "lumstudio:invisible_west",
   "lumstudio:invisible_up",
   "lumstudio:invisible_down"
@@ -31,7 +38,7 @@ let currentTickRunned = false;
  * @param {string|object} direction The direction face (Up, Down) or vector direction.
  * @returns {string} The direction string.
  */
-function getDirectionString(direction) {
+function getDirectionString(direction) { // I don't know what it should do
   if (typeof direction === "string") {
     // If the direction is a face
     switch (direction) {
@@ -208,14 +215,14 @@ function areEqualPerms(perm1, perm2) {
  * @param {boolean} below 
  * @returns new permutation
  */
-function refreshStates(permutation, neighborStates, below) {
+function refreshStates(permutation, neighborStates, below, isSource) {
   let newPerm = permutation.withState(invisibleStatesNames[5], +below);
-  // TODO: changing the order of neighborStates if direction is not north or none
   for (let i = 0; i < 4; i++) {
+    const num = directionNums[permutation.getState("lumstudio:direction")];
     if (neighborStates[i]) {
       const nDepth = neighborStates[i]["lumstudio:depth"];
       const depth = permutation.getState("lumstudio:depth");
-      newPerm = newPerm.withState(invisibleStatesNames[i], depth < nDepth ? 2 : 0)
+      newPerm = newPerm.withState(invisibleStatesNames[(i + num) % 4], depth < nDepth ? 2 : 0)
     }
   }
   // TODO: direction choosing
@@ -259,7 +266,7 @@ function fluidBasic(b) {
   const isSource =
     depth === maxSpreadDistance - 1 ||
     depth === maxSpreadDistance + 1;
-  const isFallingFluid = depth >= maxSpreadDistance; // full fluid blocks
+  let isFallingFluid = depth >= maxSpreadDistance; // full fluid blocks
   const neighborStates = [];
   let neighborDepth = 1;
   for (const dir of directions) { // Geting all States
@@ -286,10 +293,16 @@ function fluidBasic(b) {
     b.setPermutation(air);
     return
   }
+  if (hasFluidAbove && !isFallingFluid) {
+    isFallingFluid = true;
+    fluidBlock = fluidBlock.withState(
+      "lumstudio:depth", isSource ? maxSpreadDistance + 1 : maxSpreadDistance
+    )
+  }
   if (isFallingFluid) {
     fluidBlock = refreshStatesForFalling(fluidBlock, neighborStates, hasFluidBelow, hasFluidAbove, isSource)
   } else {
-    fluidBlock = refreshStates(fluidBlock, neighborStates, hasFluidBelow)
+    fluidBlock = refreshStates(fluidBlock, neighborStates, hasFluidBelow, isSource)
   }
   if (!areEqualPerms(b.permutation, fluidBlock)) {
     // TODO: marking neighbors
