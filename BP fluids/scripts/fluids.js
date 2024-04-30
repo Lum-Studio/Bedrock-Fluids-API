@@ -210,6 +210,7 @@ function areEqualPerms(perm1, perm2) {
  */
 function refreshStates(permutation, neighborStates, below) {
   let newPerm = permutation.withState(invisibleStatesNames[5], +below);
+  // TODO: changing the order of neighborStates if direction is not north or none
   for (let i = 0; i < 4; i++) {
     if (neighborStates[i]) {
       const nDepth = neighborStates[i]["lumstudio:depth"];
