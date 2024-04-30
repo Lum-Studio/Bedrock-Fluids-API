@@ -237,7 +237,6 @@ function refreshStatesForFalling(permutation, neighborStates, below, above, isSo
     if (neighborStates[i]) {
       const nDepth = neighborStates[i]["lumstudio:depth"];
       const depth = permutation.getState("lumstudio:depth");
-      // TODO: add test for conections with source and non-source depths
       const isMicro = nDepth === depth - 1 - isSource;// analog to (isSource ? nDepth === depth - 2 : nDepth === depth - 1)
       newPerm = newPerm.withState(invisibleStatesNames[i], depth < nDepth ? 2 : +isMicro)
     }
