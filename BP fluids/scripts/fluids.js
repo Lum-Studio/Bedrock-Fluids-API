@@ -217,6 +217,7 @@ function refreshStates(permutation, neighborStates, below) {
       newPerm = newPerm.withState(invisibleStatesNames[i], depth < nDepth ? 2 : 0)
     }
   }
+  // TODO: direction choosing
   return newPerm;
 }
 
@@ -241,6 +242,8 @@ function refreshStatesForFalling(permutation, neighborStates, below, above, isSo
       newPerm = newPerm.withState(invisibleStatesNames[i], depth < nDepth ? 2 : +isMicro)
     }
   }
+  return newPerm;
+  // here shouldn't be directions
 }
 /**
  * Updates the fluid.
