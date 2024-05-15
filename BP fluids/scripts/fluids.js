@@ -8,13 +8,17 @@ import {
 } from "@minecraft/server";
 import { FluidQueue } from "./queue";
 
-const air = BlockPermutation.resolve("air");
+const air = BlockPermutation.resolve("air"); // diagonal directions offset is 45 degrees in clockwise
 const directionNums = {
   "n": 0,
   "none": 0,
   "e": 1,
   "s": 2,
   "w": 3,
+  "ne": 0,
+  "se": 1,
+  "sw": 2,
+  "nw": 3,
 }
 const directions = [
   { dx: 0, dy: 0, dz: -1, facing: "n" },

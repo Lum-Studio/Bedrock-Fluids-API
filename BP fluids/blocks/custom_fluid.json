@@ -14,7 +14,7 @@
         "lumstudio:invisible_up": [0,1],
         "lumstudio:invisible_down": [0,1],
         "lumstudio:depth": [6,7,5,4,3,2,1],
-        "lumstudio:direction": ["none","s","n","e","w"]
+        "lumstudio:direction": ["none","s","n","e","w","ns","ne","se","sw"]
       }
     },
     "components": {

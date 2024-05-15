@@ -7,8 +7,9 @@ fluid_tag = "custom_fluid"
 depth = [1,2,3,4,5,6,7,8]
 geometries = [1,2,3,4,6,7,8,8]
 texture_still = "oil"
+texture_diagonal = "oil" # TODO: add an animated texture for diagonal flowing oil
 flowing = "flowing_oil"
-directions = [ "north","east","south","west","none" ]
+directions = ["none","s","n","e","w","ns","ne","se","sw"]
 invisible = [ "north","east","south","west","down","up" ]
 from itertools import combinations
 
@@ -35,19 +36,29 @@ def getBones(invisibl,direction):
             
 array =[]
 for x in range(len(depth)):
-    for dire in directions:
+    for num in range(len(directions)):
+        dire = directions[num]
+
         cond1 = f"q.block_state('lumstudio:depth') == {str(depth[x])} && q.block_state('lumstudio:direction') == '{dire}'"
         rot =  None
         mat = {"*":{"texture":flowing,"render_method": "blend","face_dimming": False,"ambient_occlusion": False}}
         if (dire == "none"):
             mat["up"] = {"texture":texture_still,"render_method": "blend","face_dimming": False,"ambient_occlusion": False}
         match dire:
-            case "west":
+            case "w":
                 rot = [0,-90,0]
-            case "east":
+            case "e":
                 rot = [0,90,0]
-            case "north":
+            case "n":
                 rot = [0,180,0]
+            case "nw":
+                rot = [0,-90,0]
+            case "se":
+                rot = [0,90,0]
+            case "ne":
+                rot = [0,180,0]
+        if len(dire) == 2:
+            mat["up"]["texture"] = texture_diagonal
         geom = {"identifier":"geometry.fluid."+str(geometries[x])}
         
         for i in [0]:
