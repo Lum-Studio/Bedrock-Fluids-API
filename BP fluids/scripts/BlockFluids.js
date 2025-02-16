@@ -1,95 +1,222 @@
-import { world, system, BlockPermutation, Items, ItemStack } from "@minecraft/server";
+import { world, system } from "@minecraft/server";
 
 const FLUIDS = {
-    _stateStore: new WeakMap(),
-    _dormantRegistry: new WeakMap(),
-    _fluidThresholds: [
-        { threshold: 1.0, state: "full" },
-        { threshold: 0.75, state: "three_quarters" },
-        { threshold: 0.5, state: "half" },
-        { threshold: 0.25, state: "quarter" },
-        { threshold: 0.0, state: "empty" },
-    ],
-    _detectionRadius: 10, // Blocks within this radius will update
+  // Use WeakMap so that when blocks are removed, state is garbage-collected.
+  _stateStore: new WeakMap(),
+  _dormantRegistry: new WeakMap(),
+  // Fluid thresholds for determining fluid_state from fluidLevel.
+  _fluidThresholds: [
+    { threshold: 0.875, state: "full" },
+    { threshold: 0.75,  state: "flowing_0" },
+    { threshold: 0.625, state: "flowing_1" },
+    { threshold: 0.5,   state: "flowing_2" },
+    { threshold: 0.375, state: "flowing_3" },
+    { threshold: 0.25,  state: "flowing_4" },
+    { threshold: 0.125, state: "flowing_5" },
+    { threshold: 0,     state: "empty" }
+  ],
+  // Only full blocks are allowed to go dormant.
+  _dormantFluidState: "full",
+  // Player proximity radius squared.
+  _proximityRadiusSq: 100, // 10 blocks radius
 
-    onBlockPlaced(event) {
-        const block = event.block;
-        if (!block) return;
-        FLUIDS._stateStore.set(block, { fluidLevel: 1.0, stableTicks: 0, fluidState: "full", slope: "flat" });
-    },
+  /**
+   * Registers a fluid type.
+   * Example: FLUIDS.register("cosmos:oil", { decayRate: 0.005, dormantThreshold: 0.1, stableTicksRequired: 40 });
+   */
+  register(fluidId, config = {}) {
+    this._registrations = this._registrations || new Map();
+    this._registrations.set(fluidId, {
+      decayRate: config.decayRate || 0.005,
+      dormantThreshold: config.dormantThreshold || 0.1,
+      stableTicksRequired: config.stableTicksRequired || 40
+    });
+  },
 
-    onTick(event) {
-        for (const block of world.getDimension("overworld").getEntities({ type: "block" })) {
-            if (!FLUIDS._isPlayerNearby(block)) continue; // Skip update if no nearby player
-            let state = FLUIDS._stateStore.get(block);
-            if (!state) continue;
-
-            state.fluidLevel = Math.max(0, state.fluidLevel - 0.01); // Simulate flow
-            state.slope = FLUIDS._computeSlope(block);
-            state.fluidState = FLUIDS._getFluidState(state.fluidLevel);
-            block.setPermutation(BlockPermutation.resolve(`lumstudio:fluid_${state.fluidState}_${state.slope}`));
-
-            // Convert to dormant if full and stable
-            if (state.fluidState === "full" && state.fluidLevel <= 0.1 && state.stableTicks++ > 20) {
-                block.setType("lumstudio:fluid_dormant");
-                FLUIDS._stateStore.delete(block);
-                FLUIDS._dormantRegistry.set(block, "lumstudio:fluid");
-            }
+  /**
+   * Registers a bucket for the given fluid.
+   * This function derives the empty bucket and filled bucket identifiers from fluidId.
+   * For example, FLUIDS.registerBucket("cosmos:oil") will use "cosmos:oil_bucket" as the empty bucket
+   * and "cosmos:oil_bucket_filled" as the filled bucket.
+   */
+  registerBucket(fluidId) {
+    const emptyBucketId = fluidId + "_bucket";
+    const filledBucketId = fluidId + "_bucket_filled";
+    world.beforeEvents.worldInitialize.subscribe(({ itemComponentRegistry }) => {
+      itemComponentRegistry.registerCustomComponent(emptyBucketId, {
+        onUse({ source: player, itemStack }) {
+          const targetBlock = player.getBlockFromViewDirection();
+          if (!targetBlock) return;
+          // Allow bucket use only if target is active and full OR dormant.
+          const key = FLUIDS._getBlockKey(targetBlock);
+          const activeState = FLUIDS._stateStore.get(targetBlock);
+          if (
+            (targetBlock.matches(fluidId) &&
+              activeState &&
+              activeState.fluidState === "full") ||
+            targetBlock.matches(`${fluidId}_dormant`)
+          ) {
+            targetBlock.setType("minecraft:air");
+            itemStack.typeId = filledBucketId;
+            player.dimension.playSound("random.bucket.fill", player.location);
+          }
         }
-    },
+      });
+    });
+  },
 
-    _isPlayerNearby(block) {
-        const center = block.center();
-        return world.getAllPlayers().some(player => {
-            const dx = player.location.x - center.x;
-            const dy = player.location.y - center.y;
-            const dz = player.location.z - center.z;
-            return dx * dx + dy * dy + dz * dz <= FLUIDS._detectionRadius ** 2;
+  /**
+   * Initializes the fluid components for all registered fluids.
+   */
+  init() {
+    world.beforeEvents.worldInitialize.subscribe(({ blockComponentRegistry }) => {
+      for (const [fluidId, cfg] of this._registrations.entries()) {
+        // Active fluid component.
+        blockComponentRegistry.registerCustomComponent(fluidId, {
+          onPlace(event) {
+            const block = event.block;
+            FLUIDS._stateStore.set(block, {
+              fluidLevel: 1.0,
+              stableTicks: 0,
+              fluidState: "full",
+              slope: "none"
+            });
+            block.setPermutation({ fluid_state: "full", slope: "none" });
+          },
+          onTick(event) {
+            const block = event.block;
+            // Only update if a player is nearby.
+            if (!FLUIDS._isPlayerNearby(block)) return;
+            if (!FLUIDS._stateStore.has(block)) return;
+            let state = FLUIDS._stateStore.get(block);
+            const { decayRate, dormantThreshold, stableTicksRequired } = cfg;
+            // Decay the fluid level.
+            const newLevel = Math.max(0, state.fluidLevel - decayRate);
+            const newStableTicks = Math.abs(newLevel - state.fluidLevel) < 0.001 ? state.stableTicks + 1 : 0;
+            state.fluidLevel = newLevel;
+            state.stableTicks = newStableTicks;
+            // Determine fluid state dynamically.
+            let newFluidState = "empty";
+            for (const { threshold, state: fs } of FLUIDS._fluidThresholds) {
+              if (newLevel >= threshold) {
+                newFluidState = fs;
+                break;
+              }
+            }
+            state.fluidState = newFluidState;
+            // Compute slope based on neighbor fluid levels.
+            const slope = FLUIDS._computeSlope(block);
+            state.slope = slope;
+            FLUIDS._stateStore.set(block, state);
+            // Update block permutation; this links to the precomputed geometry.
+            block.setPermutation({ fluid_state: newFluidState, slope: slope });
+            // Only allow dormant switch for a full block.
+            if (
+              newFluidState === FLUIDS._dormantFluidState &&
+              newLevel <= dormantThreshold &&
+              newStableTicks >= stableTicksRequired
+            ) {
+              block.setType(`${fluidId}_dormant`);
+              FLUIDS._stateStore.delete(block);
+              FLUIDS._dormantRegistry.set(block, fluidId);
+            }
+          },
+          onPlayerDestroy(event) {
+            const block = event.block;
+            FLUIDS._stateStore.delete(block);
+            FLUIDS._dormantRegistry.delete(block);
+          }
         });
-    },
+        // Dormant fluid component.
+        blockComponentRegistry.registerCustomComponent(`${fluidId}_dormant`, {
+          onPlace(event) {
+            const block = event.block;
+            block.setPermutation({ fluid_state: "dormant", slope: "none" });
+            FLUIDS._dormantRegistry.set(block, fluidId);
+          },
+          // Instead of a constant scan, use onRandomTick to conditionally check for reactivation.
+          onRandomTick(event) {
+            const block = event.block;
+            if (!FLUIDS._dormantRegistry.has(block)) return;
+            // Check neighbors to see if any active block has a high fluid level.
+            const reactivationThreshold = 0.2;
+            const neighbors = [block.north(), block.east(), block.south(), block.west()];
+            let reactivate = false;
+            for (const nb of neighbors) {
+              if (nb && FLUIDS._stateStore.has(nb)) {
+                const nbState = FLUIDS._stateStore.get(nb);
+                if (nbState.fluidLevel > reactivationThreshold) {
+                  reactivate = true;
+                  break;
+                }
+              }
+            }
+            if (reactivate) {
+              const fluidId = FLUIDS._dormantRegistry.get(block);
+              block.setType(fluidId);
+              FLUIDS._stateStore.set(block, {
+                fluidLevel: 1.0,
+                stableTicks: 0,
+                fluidState: "full",
+                slope: "none"
+              });
+              block.setPermutation({ fluid_state: "full", slope: "none" });
+              FLUIDS._dormantRegistry.delete(block);
+            }
+          },
+          onPlayerDestroy(event) {
+            const block = event.block;
+            FLUIDS._dormantRegistry.delete(block);
+          }
+        });
+      }
+    });
+  },
 
-    _computeSlope(block) {
-        const directions = ["north", "south", "east", "west"];
-        const neighborLevels = directions.map(dir => FLUIDS._getNeighborFluidLevel(block, dir));
-        return neighborLevels.some(level => level < block.getComponent("fluid_level")) ? "sloped" : "flat";
-    },
+  // Check if any player is within a set radius (squared) of the block's center.
+  _isPlayerNearby(block) {
+    const center = block.center();
+    const radiusSq = 100; // 10 blocks radius squared
+    return world.getAllPlayers().some(player => {
+      const loc = player.location;
+      const dx = loc.x - center.x;
+      const dy = loc.y - center.y;
+      const dz = loc.z - center.z;
+      return dx * dx + dy * dy + dz * dz <= radiusSq;
+    });
+  },
 
-    _getNeighborFluidLevel(block, direction) {
-        const offset = { north: [0, 0, -1], south: [0, 0, 1], east: [1, 0, 0], west: [-1, 0, 0] }[direction];
-        const neighbor = block.dimension.getBlock(block.location.add(offset));
-        const state = FLUIDS._stateStore.get(neighbor);
-        return state ? state.fluidLevel : 0;
-    },
-
-    _getFluidState(level) {
-        return FLUIDS._fluidThresholds.find(({ threshold }) => level >= threshold).state;
-    },
-
-    onItemUse(event) {
-        const { source, item, block } = event;
-        if (item.id !== "minecraft:bucket") return;
-        
-        let state = FLUIDS._stateStore.get(block);
-        if (!state || state.fluidState !== "full") return;
-
-        // Remove block and replace bucket with fluid-filled version
-        block.setType("minecraft:air");
-        FLUIDS._stateStore.delete(block);
-        const fluidBucket = new ItemStack(Items.get("lumstudio:fluid_bucket"), 1);
-        source.getComponent("inventory").container.setItem(source.selectedSlot, fluidBucket);
-    },
+  // Computes the slope by comparing this block's fluid level with its four cardinal neighbors.
+  _computeSlope(block) {
+    if (!FLUIDS._stateStore.has(block)) return "none";
+    const state = FLUIDS._stateStore.get(block);
+    const currentLevel = state.fluidLevel;
+    let bestDir = "none";
+    let minLevel = currentLevel;
+    const neighbors = {
+      n: block.north(),
+      e: block.east(),
+      s: block.south(),
+      w: block.west()
+    };
+    for (const [dir, nb] of Object.entries(neighbors)) {
+      if (nb && FLUIDS._stateStore.has(nb)) {
+        const nbState = FLUIDS._stateStore.get(nb);
+        if (nbState.fluidLevel < minLevel) {
+          minLevel = nbState.fluidLevel;
+          bestDir = dir;
+        }
+      }
+    }
+    return bestDir;
+  }
 };
-
-world.events.blockPlace.subscribe(event => FLUIDS.onBlockPlaced(event));
-system.runInterval(() => FLUIDS.onTick(), 5);
-world.events.itemUseOn.subscribe(event => FLUIDS.onItemUse(event));
-
 
 export default FLUIDS;
 
 // Automatically initialize fluid components.
 FLUIDS.init();
 
-// Example usage (in another module):
+// Example usage:
 // FLUIDS.register("cosmos:oil", { decayRate: 0.005, dormantThreshold: 0.1, stableTicksRequired: 40 });
-// FLUIDS.registerBucket("cosmos:oil", "mycustom:oil_bucket", "mycustom:oil_bucket_filled");
+// FLUIDS.registerBucket("cosmos:oil");
