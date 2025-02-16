@@ -1,0 +1,245 @@
+{
+  "format_version": "1.16.100",
+  "minecraft:client_block_permutations": [
+    {
+      "condition": "q.block_state('fluid_state') == 'flowing_5' && q.block_state('slope') == 'none'",
+      "components": {
+        "minecraft:geometry": "geometry.custom.fluid.oil.12_none"
+      }
+    },
+    {
+      "condition": "q.block_state('fluid_state') == 'flowing_5' && q.block_state('slope') == 'n'",
+      "components": {
+        "minecraft:geometry": "geometry.custom.fluid.oil.12_n"
+      }
+    },
+    {
+      "condition": "q.block_state('fluid_state') == 'flowing_5' && q.block_state('slope') == 'e'",
+      "components": {
+        "minecraft:geometry": "geometry.custom.fluid.oil.12_e"
+      }
+    },
+    {
+      "condition": "q.block_state('fluid_state') == 'flowing_5' && q.block_state('slope') == 's'",
+      "components": {
+        "minecraft:geometry": "geometry.custom.fluid.oil.12_s"
+      }
+    },
+    {
+      "condition": "q.block_state('fluid_state') == 'flowing_5' && q.block_state('slope') == 'w'",
+      "components": {
+        "minecraft:geometry": "geometry.custom.fluid.oil.12_w"
+      }
+    },
+    {
+      "condition": "q.block_state('fluid_state') == 'flowing_4' && q.block_state('slope') == 'none'",
+      "components": {
+        "minecraft:geometry": "geometry.custom.fluid.oil.25_none"
+      }
+    },
+    {
+      "condition": "q.block_state('fluid_state') == 'flowing_4' && q.block_state('slope') == 'n'",
+      "components": {
+        "minecraft:geometry": "geometry.custom.fluid.oil.25_n"
+      }
+    },
+    {
+      "condition": "q.block_state('fluid_state') == 'flowing_4' && q.block_state('slope') == 'e'",
+      "components": {
+        "minecraft:geometry": "geometry.custom.fluid.oil.25_e"
+      }
+    },
+    {
+      "condition": "q.block_state('fluid_state') == 'flowing_4' && q.block_state('slope') == 's'",
+      "components": {
+        "minecraft:geometry": "geometry.custom.fluid.oil.25_s"
+      }
+    },
+    {
+      "condition": "q.block_state('fluid_state') == 'flowing_4' && q.block_state('slope') == 'w'",
+      "components": {
+        "minecraft:geometry": "geometry.custom.fluid.oil.25_w"
+      }
+    },
+    {
+      "condition": "q.block_state('fluid_state') == 'flowing_3' && q.block_state('slope') == 'none'",
+      "components": {
+        "minecraft:geometry": "geometry.custom.fluid.oil.37_none"
+      }
+    },
+    {
+      "condition": "q.block_state('fluid_state') == 'flowing_3' && q.block_state('slope') == 'n'",
+      "components": {
+        "minecraft:geometry": "geometry.custom.fluid.oil.37_n"
+      }
+    },
+    {
+      "condition": "q.block_state('fluid_state') == 'flowing_3' && q.block_state('slope') == 'e'",
+      "components": {
+        "minecraft:geometry": "geometry.custom.fluid.oil.37_e"
+      }
+    },
+    {
+      "condition": "q.block_state('fluid_state') == 'flowing_3' && q.block_state('slope') == 's'",
+      "components": {
+        "minecraft:geometry": "geometry.custom.fluid.oil.37_s"
+      }
+    },
+    {
+      "condition": "q.block_state('fluid_state') == 'flowing_3' && q.block_state('slope') == 'w'",
+      "components": {
+        "minecraft:geometry": "geometry.custom.fluid.oil.37_w"
+      }
+    },
+    {
+      "condition": "q.block_state('fluid_state') == 'flowing_2' && q.block_state('slope') == 'none'",
+      "components": {
+        "minecraft:geometry": "geometry.custom.fluid.oil.50_none"
+      }
+    },
+    {
+      "condition": "q.block_state('fluid_state') == 'flowing_2' && q.block_state('slope') == 'n'",
+      "components": {
+        "minecraft:geometry": "geometry.custom.fluid.oil.50_n"
+      }
+    },
+    {
+      "condition": "q.block_state('fluid_state') == 'flowing_2' && q.block_state('slope') == 'e'",
+      "components": {
+        "minecraft:geometry": "geometry.custom.fluid.oil.50_e"
+      }
+    },
+    {
+      "condition": "q.block_state('fluid_state') == 'flowing_2' && q.block_state('slope') == 's'",
+      "components": {
+        "minecraft:geometry": "geometry.custom.fluid.oil.50_s"
+      }
+    },
+    {
+      "condition": "q.block_state('fluid_state') == 'flowing_2' && q.block_state('slope') == 'w'",
+      "components": {
+        "minecraft:geometry": "geometry.custom.fluid.oil.50_w"
+      }
+    },
+    {
+      "condition": "q.block_state('fluid_state') == 'flowing_1' && q.block_state('slope') == 'none'",
+      "components": {
+        "minecraft:geometry": "geometry.custom.fluid.oil.62_none"
+      }
+    },
+    {
+      "condition": "q.block_state('fluid_state') == 'flowing_1' && q.block_state('slope') == 'n'",
+      "components": {
+        "minecraft:geometry": "geometry.custom.fluid.oil.62_n"
+      }
+    },
+    {
+      "condition": "q.block_state('fluid_state') == 'flowing_1' && q.block_state('slope') == 'e'",
+      "components": {
+        "minecraft:geometry": "geometry.custom.fluid.oil.62_e"
+      }
+    },
+    {
+      "condition": "q.block_state('fluid_state') == 'flowing_1' && q.block_state('slope') == 's'",
+      "components": {
+        "minecraft:geometry": "geometry.custom.fluid.oil.62_s"
+      }
+    },
+    {
+      "condition": "q.block_state('fluid_state') == 'flowing_1' && q.block_state('slope') == 'w'",
+      "components": {
+        "minecraft:geometry": "geometry.custom.fluid.oil.62_w"
+      }
+    },
+    {
+      "condition": "q.block_state('fluid_state') == 'flowing_0' && q.block_state('slope') == 'none'",
+      "components": {
+        "minecraft:geometry": "geometry.custom.fluid.oil.75_none"
+      }
+    },
+    {
+      "condition": "q.block_state('fluid_state') == 'flowing_0' && q.block_state('slope') == 'n'",
+      "components": {
+        "minecraft:geometry": "geometry.custom.fluid.oil.75_n"
+      }
+    },
+    {
+      "condition": "q.block_state('fluid_state') == 'flowing_0' && q.block_state('slope') == 'e'",
+      "components": {
+        "minecraft:geometry": "geometry.custom.fluid.oil.75_e"
+      }
+    },
+    {
+      "condition": "q.block_state('fluid_state') == 'flowing_0' && q.block_state('slope') == 's'",
+      "components": {
+        "minecraft:geometry": "geometry.custom.fluid.oil.75_s"
+      }
+    },
+    {
+      "condition": "q.block_state('fluid_state') == 'flowing_0' && q.block_state('slope') == 'w'",
+      "components": {
+        "minecraft:geometry": "geometry.custom.fluid.oil.75_w"
+      }
+    },
+    {
+      "condition": "q.block_state('fluid_state') == 'full' && q.block_state('slope') == 'none'",
+      "components": {
+        "minecraft:geometry": "geometry.custom.fluid.oil.87_none"
+      }
+    },
+    {
+      "condition": "q.block_state('fluid_state') == 'full' && q.block_state('slope') == 'n'",
+      "components": {
+        "minecraft:geometry": "geometry.custom.fluid.oil.87_n"
+      }
+    },
+    {
+      "condition": "q.block_state('fluid_state') == 'full' && q.block_state('slope') == 'e'",
+      "components": {
+        "minecraft:geometry": "geometry.custom.fluid.oil.87_e"
+      }
+    },
+    {
+      "condition": "q.block_state('fluid_state') == 'full' && q.block_state('slope') == 's'",
+      "components": {
+        "minecraft:geometry": "geometry.custom.fluid.oil.87_s"
+      }
+    },
+    {
+      "condition": "q.block_state('fluid_state') == 'full' && q.block_state('slope') == 'w'",
+      "components": {
+        "minecraft:geometry": "geometry.custom.fluid.oil.87_w"
+      }
+    },
+    {
+      "condition": "q.block_state('fluid_state') == 'full' && q.block_state('slope') == 'none'",
+      "components": {
+        "minecraft:geometry": "geometry.custom.fluid.oil.100_none"
+      }
+    },
+    {
+      "condition": "q.block_state('fluid_state') == 'full' && q.block_state('slope') == 'n'",
+      "components": {
+        "minecraft:geometry": "geometry.custom.fluid.oil.100_n"
+      }
+    },
+    {
+      "condition": "q.block_state('fluid_state') == 'full' && q.block_state('slope') == 'e'",
+      "components": {
+        "minecraft:geometry": "geometry.custom.fluid.oil.100_e"
+      }
+    },
+    {
+      "condition": "q.block_state('fluid_state') == 'full' && q.block_state('slope') == 's'",
+      "components": {
+        "minecraft:geometry": "geometry.custom.fluid.oil.100_s"
+      }
+    },
+    {
+      "condition": "q.block_state('fluid_state') == 'full' && q.block_state('slope') == 'w'",
+      "components": {
+        "minecraft:geometry": "geometry.custom.fluid.oil.100_w"
+      }
+    }
+  ]
+}
