@@ -1,0 +1,30 @@
+{
+  "format_version": "1.21.60",
+  "minecraft:block": {
+    "description": {
+      "identifier": "cosmos:oil_dormant",
+      "properties": {}
+    },
+    "components": {
+      "minecraft:geometry": "geometry.full_block",
+      "minecraft:material_instances": {
+        "*": {
+          "texture": "oil",
+          "render_method": "blend",
+          "face_dimming": false,
+          "ambient_occlusion": false
+        }
+      },
+      "minecraft:collision_box": false,
+      "minecraft:selection_box": false
+    },
+    "permutations": [
+      {
+        "condition": "q.block_state('fluid_state') == 'dormant'",
+        "components": {
+          "minecraft:geometry": "geometry.full_block"
+        }
+      }
+    ]
+  }
+}
