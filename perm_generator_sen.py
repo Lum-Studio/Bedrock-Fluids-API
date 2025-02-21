@@ -20,8 +20,8 @@ def fluid_state(depth):
         if depth >= thresh:
             return state
 
-# Possible slope values.
-SLOPE_VALUES = ["none", "n", "e", "s", "w"]
+# Possible slope values including diagonals.
+SLOPE_VALUES = ["none", "n", "e", "s", "w", "ne", "nw", "se", "sw"]
 
 permutations = []
 for depth in DEPTH_VALUES:
