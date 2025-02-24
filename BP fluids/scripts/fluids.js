@@ -333,3 +333,395 @@ system.afterEvents.scriptEventReceive.subscribe((event) => {
     Q.add(b);
   }
 });
+
+
+// Assume neighborWatcher is an instance of InternalOptimizedNeighborWatcher.
+const fluidWatchers = new Map();
+
+/**
+ * Registers a watcher for a custom fluid block.
+ * @param {object} fluidBlockPos - Position { x, y, z } of the fluid block.
+ */
+function registerFluidWatcher(fluidBlockPos) {
+  const key = `${fluidBlockPos.x},${fluidBlockPos.y},${fluidBlockPos.z}`;
+  if (fluidWatchers.has(key)) return; // Already watching.
+  
+  const watcher = neighborWatcher.addWatcher(fluidBlockPos, (changedPos, newType, oldType) => {
+    // Custom logic: For example, if the neighbor now becomes air, fluid may spread into that space.
+    // Update your fluid simulation accordingly.
+    console.log(`Fluid at ${key} sees neighbor change: ${oldType} -> ${newType}`);
+    updateFluidFlow(fluidBlockPos, changedPos, newType, oldType);
+  });
+  
+  fluidWatchers.set(key, watcher);
+}
+
+/**
+ * Unregisters the watcher for a fluid block when it's no longer needed.
+ * @param {object} fluidBlockPos - Position of the fluid block.
+ */
+function unregisterFluidWatcher(fluidBlockPos) {
+  const key = `${fluidBlockPos.x},${fluidBlockPos.y},${fluidBlockPos.z}`;
+  const watcher = fluidWatchers.get(key);
+  if (watcher) {
+    neighborWatcher.removeWatcher(watcher);
+    fluidWatchers.delete(key);
+  }
+}
+
+/**
+ * Example function to update fluid flow based on neighbor change.
+ */
+function updateFluidFlow(fluidPos, changedPos, newType, oldType) {
+  // Your custom logic to simulate fluid flow.
+  // E.g., if newType is "minecraft:air", consider flowing fluid into that space.
+  // If a neighbor becomes solid, you may stop flow in that direction.
+  // This function would integrate with your custom fluids API.
+  console.log(`Updating fluid flow at (${fluidPos.x}, ${fluidPos.y}, ${fluidPos.z}) due to change at (${changedPos.x}, ${changedPos.y}, ${changedPos.z}).`);
+}
+
+
+export class FluidQueue {
+  #marked = new Set(); // Use Set for faster membership check
+  #optimized = [];
+  #instant = [];
+  #isRunning = false;
+  #runId;
+  /**
+   * Callback Function that changes the block
+   * @callback callback
+   * @param {Block} block
+   */
+  /**
+   * Creates new Fluid Queue
+   * @param {callback} operation
+   * @param {string} blockTypeId
+   */
+  constructor(operation, blockTypeId) {
+      if (typeof operation !== 'function' || operation.length !== 1) {
+          throw new Error("Operation should be a function with one parameter");
+      }
+      this.type = blockTypeId;
+      this.blockOperation = operation;
+  }
+  /**
+   * Adds the fluid block to the queue
+   * @param {Block} block
+   */
+  add(block) {
+      if (!this.#isRunning) {
+          console.warn("§cThe fluid queue is stopped, you can't use any methods");
+      } else if (block.typeId === this.type) {
+          if (this.#marked.has(block)) {
+              this.#instant.push(block);
+              this.#marked.delete(block);
+              const index = this.#optimized.findIndex((v) => v === block);
+              if (index !== -1) this.#optimized.splice(index, 1);
+          } else {
+              this.#optimized.push(block);
+          }
+      }
+  }
+  /**
+   * Makes the block ignore queue the next time
+   * @param {Block} block
+   */
+  skipQueueFor(block) {
+      this.#marked.add(block);
+  }
+  /**
+   * Starts the fluid flow, spreading and changing
+   * @param {number} countPerTick Runs all registered fluids and their operation for x amount of times in a tick
+   */
+  run(countPerTick) {
+      this.stop();
+      this.#runId = system.runInterval(() => {
+          for (const block of this.#instant) {
+              try {
+                  this.blockOperation(block);
+              } catch (error) {
+                  console.error(`FluidQueue of ${this.type}: Instant: ${error}`);
+              }
+          }
+          this.#instant.length = 0;
+          for (let iteration = 0; iteration < countPerTick; iteration++) {
+              if (this.#optimized.length === 0) break;
+
+              const block = this.#optimized.shift();
+              if (!block?.typeId || block.typeId !== this.type) continue;
+
+              try {
+                  this.blockOperation(block);
+              } catch (error) {
+                  console.error(`FluidQueue of ${this.type}: Ticking: Iteration #${iteration}: ${error}`);
+              }
+          }
+      }, 0);
+      this.#isRunning = true;
+  }
+  /**
+   * Stops the fluid flow, spreading and changing
+   */
+  stop() {
+      if (this.#isRunning) {
+          system.clearRun(this.#runId);
+          this.#isRunning = false;
+      }
+  }
+}
+
+import {
+  BlockPermutation,
+  system,
+  world,
+  Block,
+  Direction,
+} from "@minecraft/server";
+
+/**
+ * Constants used by the fluid component.
+ */
+const AIR = BlockPermutation.resolve("air");
+const DIRECTIONS = [
+  { dx: 0, dy: 0, dz: -1, facing: "n" },
+  { dx: 1, dy: 0, dz: 0, facing: "e" },
+  { dx: 0, dy: 0, dz: 1, facing: "s" },
+  { dx: -1, dy: 0, dz: 0, facing: "w" },
+];
+// Invisible state names for fluid simulation.
+const INVISIBLE_STATE_NAMES = [
+  "lumstudio:invisible_north",
+  "lumstudio:invisible_east",
+  "lumstudio:invisible_south",
+  "lumstudio:invisible_west",
+  "lumstudio:invisible_up",
+  "lumstudio:invisible_down"
+];
+
+/**
+ * Compares two BlockPermutation objects by comparing all of their states.
+ * @param {BlockPermutation} perm1 
+ * @param {BlockPermutation} perm2 
+ * @returns {boolean} True if both have identical states.
+ */
+function areEqualPermutations(perm1, perm2) {
+  const states1 = perm1.getAllStates();
+  const states2 = perm2.getAllStates();
+  return Object.keys(states1).every(key => states1[key] === states2[key]);
+}
+
+/**
+ * Refreshes the fluid state for non-falling (dormant) fluids.
+ * @param {BlockPermutation} perm - The current fluid block permutation.
+ * @param {Array<Record<string, any>>} neighborStates - States of horizontal neighbors.
+ * @param {boolean} below - Whether there is fluid below.
+ * @param {boolean} isSource - Whether this block is a source fluid.
+ * @returns {BlockPermutation} Updated permutation.
+ */
+function refreshStates(perm, neighborStates, below, isSource) {
+  let newPerm = perm.withState(INVISIBLE_STATE_NAMES[5], +below);
+  const currentDepth = perm.getState("lumstudio:depth");
+  for (let i = 0; i < 4; i++) {
+    const neighbor = neighborStates[i];
+    if (neighbor) {
+      const nDepth = neighbor["lumstudio:depth"];
+      newPerm = newPerm.withState(
+        INVISIBLE_STATE_NAMES[i],
+        currentDepth < nDepth ? 2 : 0
+      );
+    }
+  }
+  return newPerm;
+}
+
+/**
+ * Refreshes the fluid state for falling (active) fluids.
+ * @param {BlockPermutation} perm - The current fluid block permutation.
+ * @param {Array<Record<string, any>>} neighborStates - States of horizontal neighbors.
+ * @param {boolean} below - Whether there is fluid below.
+ * @param {boolean} above - Whether there is fluid above.
+ * @param {boolean} isSource - Whether this block is a source fluid.
+ * @returns {BlockPermutation} Updated permutation.
+ */
+function refreshStatesForFalling(perm, neighborStates, below, above, isSource) {
+  let newPerm = perm
+    .withState(INVISIBLE_STATE_NAMES[4], +above)
+    .withState(INVISIBLE_STATE_NAMES[5], +below);
+  const currentDepth = perm.getState("lumstudio:depth");
+  for (let i = 0; i < 4; i++) {
+    const neighbor = neighborStates[i];
+    if (neighbor) {
+      const nDepth = neighbor["lumstudio:depth"];
+      // isMicro indicates a slight difference in depth for fluid thinning.
+      const isMicro = (nDepth === currentDepth - 1 - (isSource ? 1 : 0));
+      newPerm = newPerm.withState(
+        INVISIBLE_STATE_NAMES[i],
+        currentDepth < nDepth ? 2 : +isMicro
+      );
+    }
+  }
+  return newPerm;
+}
+
+import {
+  BlockPermutation,
+  system,
+  world,
+  Block,
+  BlockComponentRegistry
+} from "@minecraft/server";
+
+/*========================================================================
+  Utility Functions
+========================================================================*/
+
+/**
+ * Compares two BlockPermutation objects by comparing all their states.
+ * @param {BlockPermutation} perm1 
+ * @param {BlockPermutation} perm2 
+ * @returns {boolean} True if both permutations have identical states.
+ */
+function areEqualPermutations(perm1, perm2) {
+  const states1 = perm1.getAllStates();
+  const states2 = perm2.getAllStates();
+  return Object.keys(states1).every(key => states1[key] === states2[key]);
+}
+
+/**
+ * Returns the fluid state string based on a normalized depth value.
+ * @param {number} depth - A normalized depth value (0 to 1).
+ * @returns {string} Fluid state ("full", "flowing_0", "flowing_1", "flowing_2", "flowing_3", "flowing_4", "flowing_5", or "empty").
+ */
+function fluidState(depth) {
+  if (depth >= 0.875) return "full";
+  if (depth >= 0.75) return "flowing_0";
+  if (depth >= 0.625) return "flowing_1";
+  if (depth >= 0.5) return "flowing_2";
+  if (depth >= 0.375) return "flowing_3";
+  if (depth >= 0.25) return "flowing_4";
+  if (depth >= 0.125) return "flowing_5";
+  return "empty";
+}
+
+/**
+ * Calculates the slope based on horizontal neighbor blocks.
+ * A neighbor is considered "open" if its block is air.
+ * @param {Block} b - The fluid block.
+ * @returns {string} The calculated slope ("none", "n", "e", "s", "w", "ne", "nw", "se", "sw").
+ */
+function calculateSlope(b) {
+  const open = [];
+  const directions = [
+    { dx: 0, dz: -1, facing: "n" },
+    { dx: 1, dz: 0, facing: "e" },
+    { dx: 0, dz: 1, facing: "s" },
+    { dx: -1, dz: 0, facing: "w" }
+  ];
+  for (const { dx, dz, facing } of directions) {
+    try {
+      const neighbor = b.offset({ x: dx, y: 0, z: dz });
+      if (neighbor && neighbor.isAir) {
+        open.push(facing);
+      }
+    } catch (e) {
+      // Ignore errors if neighbor is unloaded.
+    }
+  }
+  if (open.length === 0) return "none";
+  open.sort();
+  if (open.length === 2) {
+    const combo = open.join("");
+    const diagonals = { "en": "ne", "es": "se", "nw": "nw", "sw": "sw" };
+    if (diagonals[combo]) return diagonals[combo];
+  }
+  return open[0];
+}
+
+/**
+ * Recalculates and returns an updated fluid block permutation based on neighbor conditions.
+ * Updates the states: "fluid_state", "slope", and "lumstudio:fluidMode".
+ * Also adjusts the geometry identifier (stored in "lumstudio:geom") by appending or removing "_dormant"
+ * based on whether the fluid is active (flowing) or dormant.
+ * @param {Block} b - The fluid block.
+ * @returns {BlockPermutation} The updated permutation.
+ */
+function refreshFluidPermutation(b) {
+  let perm = b.permutation;
+  const depth = perm.getState("lumstudio:depth") || 0.5;
+  const newFluidState = fluidState(depth);
+  const hasFluidAbove = b.above()?.typeId === b.typeId;
+  const mode = hasFluidAbove ? "active" : "dormant";
+  const slope = calculateSlope(b);
+  
+  perm = perm.withState("fluid_state", newFluidState)
+           .withState("slope", slope)
+           .withState("lumstudio:fluidMode", mode);
+  
+  let geom = perm.getState("lumstudio:geom") || "geometry.custom.fluid.oil.12";
+  if (mode === "dormant" && !geom.endsWith("_dormant")) {
+    geom += "_dormant";
+  } else if (mode === "active" && geom.endsWith("_dormant")) {
+    geom = geom.replace(/_dormant$/, "");
+  }
+  perm = perm.withState("lumstudio:geom", geom);
+  return perm;
+}
+
+/**
+ * Updates the fluid block's permutation if its calculated state has changed.
+ * @param {Block} b - The fluid block.
+ */
+function updateFluidState(b) {
+  if (!b || !b.typeId) return;
+  const newPerm = refreshFluidPermutation(b);
+  if (!areEqualPermutations(b.permutation, newPerm)) {
+    b.setPermutation(newPerm);
+  }
+}
+
+/*========================================================================
+  Registration of Custom Fluid Component
+========================================================================*/
+
+/**
+ * Registers a custom block component "lumstudio:fluidBehavior" that implements fluid behavior.
+ * This component updates the block permutation on load, each tick, and when a neighbor changes.
+ * It recalculates the fluid state, slope, and mode (active/dormant) and adjusts geometry accordingly.
+ */
+world.beforeEvents.worldInitialize.subscribe(initEvent => {
+  initEvent.blockComponentRegistry.registerCustomComponent("lumstudio:fluidBehavior", {
+    
+    onLoad: e => {
+      const block = e.block;
+      let perm = block.permutation;
+      if (!perm.getState("fluid_state")) {
+        perm = perm.withState("fluid_state", fluidState(0.5));
+      }
+      if (!perm.getState("slope")) {
+        perm = perm.withState("slope", "none");
+      }
+      if (!perm.getState("lumstudio:fluidMode")) {
+        const mode = (block.above()?.typeId === block.typeId) ? "active" : "dormant";
+        perm = perm.withState("lumstudio:fluidMode", mode);
+      }
+      if (!perm.getState("lumstudio:geom")) {
+        perm = perm.withState("lumstudio:geom", "geometry.custom.fluid.oil.12");
+      }
+      block.setPermutation(perm);
+    },
+    onTick: e => {
+      try {
+        updateFluidState(e.block);
+      } catch (err) {
+        console.error("lumstudio:fluidBehavior onTick error:", err);
+      }
+    },
+    onNeighborChanged: e => {
+      try {
+        updateFluidState(e.block);
+      } catch (err) {
+        console.error("lumstudio:fluidBehavior onNeighborChanged error:", err);
+      }
+    }
+  });
+});

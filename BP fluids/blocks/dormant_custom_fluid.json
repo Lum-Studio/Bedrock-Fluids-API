@@ -2,7 +2,7 @@
   "format_version": "1.21.60",
   "minecraft:block": {
     "description": {
-      "identifier": "cosmos:oil_dormant",
+      "identifier": "lumstudio:oil_dormant",
       "properties": {}
     },
     "components": {
@@ -22,7 +22,7 @@
       {
         "condition": "q.block_state('fluid_state') == 'dormant'",
         "components": {
-          "minecraft:geometry": "geometry.full_block"
+          "minecraft:geometry": ""
         }
       }
     ]
