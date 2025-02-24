@@ -1,189 +1,302 @@
-import {
-  Block,
-  BlockPermutation,
-  system,
-  world,
-  BlockComponentRegistry
-} from "@minecraft/server";
-import { onNeighborChanged } from "./NeighborChanged";
+import { world, system } from "@minecraft/server";
+export { NeighborMonitorAPI, NeighborMonitor}
 
-/*========================================================================
-  Utility Functions
-========================================================================*/
 
 /**
- * Compares two BlockPermutation objects by comparing all their states.
- * @param {BlockPermutation} perm1 
- * @param {BlockPermutation} perm2 
- * @returns {boolean} True if both permutations are equivalent.
+ * Minimal event emitter.
  */
-function areEqualPermutations(perm1, perm2) {
-  const states1 = perm1.getAllStates();
-  const states2 = perm2.getAllStates();
-  return Object.keys(states1).every(key => states1[key] === states2[key]);
-}
+class EventBus {
+  constructor() {
+    /** @type {Map<string, Set<Function>>} */
+    this._listeners = new Map();
+  }
 
-/**
- * Computes a fluid state string from a normalized depth (0–1).
- * @param {number} depth 
- * @returns {string} One of "full", "flowing_0", "flowing_1", "flowing_2", "flowing_3", "flowing_4", "flowing_5", or "empty".
- */
-function fluidState(depth) {
-  if (depth >= 0.875) return "full";
-  if (depth >= 0.75) return "flowing_0";
-  if (depth >= 0.625) return "flowing_1";
-  if (depth >= 0.5) return "flowing_2";
-  if (depth >= 0.375) return "flowing_3";
-  if (depth >= 0.25) return "flowing_4";
-  if (depth >= 0.125) return "flowing_5";
-  return "empty";
-}
+  /**
+   * Registers a listener for the given event.
+   * @param {string} event - The event name.
+   * @param {Function} listener - The callback to invoke.
+   */
+  addListener(event, listener) {
+    if (!this._listeners.has(event)) {
+      this._listeners.set(event, new Set());
+    }
+    this._listeners.get(event).add(listener);
+  }
 
-/**
- * Calculates the slope for a fluid block by checking its four horizontal neighbors.
- * A neighbor is “open” if its block is air.
- * @param {Block} b - The fluid block.
- * @returns {string} The slope ("none", "n", "e", "s", "w", "ne", "nw", "se", or "sw").
- */
-function calculateSlope(b) {
-  const open = [];
-  const directions = [
-    { dx: 0, dz: -1, facing: "n" },
-    { dx: 1, dz: 0, facing: "e" },
-    { dx: 0, dz: 1, facing: "s" },
-    { dx: -1, dz: 0, facing: "w" }
-  ];
-  for (const { dx, dz, facing } of directions) {
-    try {
-      const neighbor = b.offset({ x: dx, y: 0, z: dz });
-      if (neighbor && neighbor.isAir) {
-        open.push(facing);
-      }
-    } catch (e) {
-      // Ignore if neighbor not loaded.
+  /**
+   * Unregisters a listener for the given event.
+   * @param {string} event - The event name.
+   * @param {Function} listener - The callback to remove.
+   */
+  removeListener(event, listener) {
+    if (this._listeners.has(event)) {
+      this._listeners.get(event).delete(listener);
     }
   }
-  if (open.length === 0) return "none";
-  open.sort();
-  if (open.length === 2) {
-    const combo = open.join("");
-    const diagonals = { "en": "ne", "es": "se", "nw": "nw", "sw": "sw" };
-    if (diagonals[combo]) return diagonals[combo];
-  }
-  return open[0];
-}
 
-/**
- * Recalculates the fluid block’s permutation.
- * Reads the current "lumstudio:depth" (normalized, defaulting to 0.5),
- * computes a new "fluid_state" using fluidState(),
- * sets "lumstudio:fluidMode" to "active" if there is fluid above or "dormant" otherwise,
- * and computes the "slope" via calculateSlope().
- * It also preserves the geometry identifier ("lumstudio:geom") so that your JSON permutations select the correct geometry.
- * @param {Block} b - The fluid block.
- * @returns {BlockPermutation} The updated permutation.
- */
-function refreshFluidPermutation(b) {
-  let perm = b.permutation;
-  const depth = perm.getState("lumstudio:depth") || 0.5;
-  const newFluidState = fluidState(depth);
-  const hasFluidAbove = b.above()?.typeId === b.typeId;
-  const mode = hasFluidAbove ? "active" : "dormant";
-  const slope = calculateSlope(b);
-  
-  perm = perm.withState("fluid_state", newFluidState)
-           .withState("slope", slope)
-           .withState("lumstudio:fluidMode", mode);
-  
-  // "lumstudio:geom" remains unchanged here; your JSON permutations choose geometry based on fluid_state, slope, and fluidMode.
-  const geom = perm.getState("lumstudio:geom") || "geometry.custom.fluid.oil.12";
-  perm = perm.withState("lumstudio:geom", geom);
-  return perm;
-}
-
-/**
- * Updates the block’s permutation if the computed state has changed.
- * @param {Block} b - The fluid block.
- */
-function updateFluidState(b) {
-  if (!b || !b.typeId) return;
-  const newPerm = refreshFluidPermutation(b);
-  if (!areEqualPermutations(b.permutation, newPerm)) {
-    b.setPermutation(newPerm);
+  /**
+   * Emits an event with the provided arguments.
+   * @param {string} event - The event name.
+   * @param {...any} args - Arguments to pass to listeners.
+   */
+  emit(event, ...args) {
+    if (this._listeners.has(event)) {
+      for (const listener of this._listeners.get(event)) {
+        try {
+          listener(...args);
+        } catch (e) {
+          console.error(`Error in event "${event}":`, e);
+        }
+      }
+    }
   }
 }
 
-/*========================================================================
-  Register Custom Fluid Behavior Component
-========================================================================*/
+/**
+ * Resolves a dimension from a provided value.
+ * @private
+ * @param {object|string|undefined} dim - A Dimension object or a dimension name (string).
+ * @returns {{ instance: object, id: string }} An object containing the Dimension instance and its ID.
+ */
+function resolveDimension(dim) {
+  if (typeof dim === "string") {
+    return { instance: world.getDimension(dim), id: dim };
+  } else if (dim && typeof dim === "object") {
+    // If the dimension object has a 'name' property, use it; otherwise, default to "unknown".
+    return { instance: dim, id: dim.name ? dim.name : "unknown" };
+  }
+  // Default dimension is overworld.
+  return { instance: world.getDimension("overworld"), id: "overworld" };
+}
 
-// The following registers a custom block component using the official BlockComponentRegistry.
-// In your fluid block JSON, list "lumstudio:fluidBehavior" under "minecraft:custom_components".
-world.beforeEvents.worldInitialize.subscribe(({ blockComponentRegistry }) => {
-  blockComponentRegistry.registerCustomComponent("lumstudio:fluidBehavior", {
-    
-    /**
-     * onPlace is called when the block is placed.
-     * It initializes the block's fluid states and registers a neighbor listener via onNeighborChanged.
-     * @param {BlockComponentOnPlaceEvent} e 
-     */
-    onPlace(e) {
-      const block = e.block;
-      let perm = block.permutation;
-      if (!perm.getState("fluid_state")) {
-        perm = perm.withState("fluid_state", fluidState(0.5));
+/**
+ * NeighborMonitor mimics a Forge-like onNeighborChanged callback for custom behaviors (e.g. custom fluids)
+ * by monitoring the six face-adjacent neighbors of a block position.
+ *
+ * Watchers can be registered in any dimension. The scanning loop batches native API calls (getBlock)
+ * and minimizes their usage by caching and debouncing changes, while processing cooperatively via system.runJob.
+ *
+ * The callback is invoked with the signature:
+ *   onNeighborChanged(changedPos, newType, oldType, watcherPos, dimensionId)
+ *
+ * @example
+ * // Register a neighbor listener in the Nether:
+ * NeighborMonitor.onNeighborChanged(
+ *   "fluidListener1",
+ *   { x: 50, y: 70, z: 50 },
+ *   (changedPos, newType, oldType, watcherPos, dimId) => {
+ *     console.log(`In ${dimId}: Neighbor at ${JSON.stringify(changedPos)} of block ${JSON.stringify(watcherPos)} changed from ${oldType} to ${newType}`);
+ *     // Custom behavior here...
+ *   },
+ *   "nether" // Dimension as string; alternatively, pass a Dimension object.
+ * );
+ *
+ * // To remove the listener:
+ * NeighborMonitor.removeNeighborChangedListener("fluidListener1");
+ *
+ * // When done with monitoring:
+ * NeighborMonitor.dispose();
+ */
+class NeighborMonitor extends EventBus {
+  // Static configuration and state.
+  static _scanInterval = 10;
+  static _debounceTicks = 2;
+  static _currentTick = 0;
+  /** @type {Map<string, Object>} */
+  static _watchers = new Map(); // Map of watcherId -> { id, pos, dimension, dimensionId, neighbors, cache, callback }
+  /** @type {Map<string, { pos: Object, type: string|null, lastTick: number }>} */
+  static _globalCache = new Map();
+  static _jobId = system.runJob(NeighborMonitor._scanLoop());
+
+  /**
+   * Internal generator: runs an endless scanning loop.
+   * @private
+   * @returns {Generator<void>}
+   */
+  static * _scanLoop() {
+    while (true) {
+      NeighborMonitor._currentTick++;
+      yield* NeighborMonitor._scanAll();
+      let ticks = NeighborMonitor._scanInterval;
+      while (ticks-- > 0) {
+        yield;
       }
-      if (!perm.getState("slope")) {
-        perm = perm.withState("slope", "none");
+    }
+  }
+
+  /**
+   * Internal generator: scans all registered watchers for neighbor changes.
+   * @private
+   * @returns {Generator<void>}
+   */
+  static * _scanAll() {
+    const coordToWatchers = new Map();
+    // Aggregate neighbor coordinates per watcher (each key includes dimension).
+    for (const watcher of NeighborMonitor._watchers.values()) {
+      for (const nPos of watcher.neighbors) {
+        const key = NeighborMonitor._coordKey(nPos, watcher.dimensionId);
+        if (!coordToWatchers.has(key)) {
+          coordToWatchers.set(key, []);
+        }
+        coordToWatchers.get(key).push({ watcher, oldEntry: watcher.cache.get(key) });
       }
-      if (!perm.getState("lumstudio:fluidMode")) {
-        const mode = (block.above()?.typeId === block.typeId) ? "active" : "dormant";
-        perm = perm.withState("lumstudio:fluidMode", mode);
+    }
+    // For each unique neighbor coordinate...
+    for (const [key, watcherEntries] of coordToWatchers.entries()) {
+      let globalEntry = NeighborMonitor._globalCache.get(key);
+      if (!globalEntry || (NeighborMonitor._currentTick - globalEntry.lastTick) >= NeighborMonitor._debounceTicks) {
+        // Use the first watcher's dimension to query.
+        const { watcher } = watcherEntries[0];
+        const samplePos = watcher.neighbors.find(nPos =>
+          NeighborMonitor._coordKey(nPos, watcher.dimensionId) === key
+        );
+        let newType = null;
+        try {
+          const block = watcher.dimension.getBlock(samplePos);
+          newType = block ? block.typeId : null;
+        } catch (e) {
+          newType = null;
+        }
+        globalEntry = { pos: samplePos, type: newType, lastTick: NeighborMonitor._currentTick };
+        NeighborMonitor._globalCache.set(key, globalEntry);
       }
-      if (!perm.getState("lumstudio:geom")) {
-        perm = perm.withState("lumstudio:geom", "geometry.custom.fluid.oil.12");
+      // Process each watcher for this coordinate.
+      for (const { watcher, oldEntry } of watcherEntries) {
+        if (oldEntry && oldEntry.type !== globalEntry.type) {
+          // Update watcher cache.
+          watcher.cache.set(key, { type: globalEntry.type, lastTick: globalEntry.lastTick });
+          try {
+            // Invoke the callback: signature mimics Java's neighborChanged:
+            // onNeighborChanged(changedPos, newType, oldType, watcherPos, dimensionId)
+            watcher.callback(globalEntry.pos, globalEntry.type, oldEntry.type, watcher.pos, watcher.dimensionId);
+          } catch (e) {
+            console.error("Error in neighborChanged callback:", e);
+          }
+          // Emit a global neighborChange event.
+          NeighborMonitor.prototype.emit.call(NeighborMonitor, "neighborChange", {
+            watcherId: watcher.id,
+            watcherPos: watcher.pos,
+            neighborPos: globalEntry.pos,
+            newType: globalEntry.type,
+            oldType: oldEntry.type,
+            dimensionId: watcher.dimensionId
+          });
+        }
       }
-      block.setPermutation(perm);
-      
-      // Register a neighbor listener using your library.
-      // Create a unique ID for this block based on its location.
-      const id = "fluid_" + block.location.x + "_" + block.location.y + "_" + block.location.z;
-      this._unregisterNeighbor = onNeighborChanged(
-        id,
-        block.location,
-        (changedPos, newType, oldType, watcherPos, dimId) => {
-          updateFluidState(block);
-        },
-        block.dimension
-      );
-    },
-    
-    /**
-     * onTick is called every tick (assuming the block has a tick component).
-     * It recalculates the fluid state.
-     * @param {BlockComponentTickEvent} e 
-     */
-    onTick(e) {
+      yield;
+    }
+  }
+
+  /**
+   * Generates a unique key for a position in a specific dimension.
+   * @private
+   * @param {object} pos - The block position ({x, y, z}).
+   * @param {string} dimId - The identifier of the dimension.
+   * @returns {string} A unique key string.
+   */
+  static _coordKey(pos, dimId) {
+    return `${dimId}:${pos.x},${pos.y},${pos.z}`;
+  }
+
+  /**
+   * Returns the six face-adjacent neighbor positions for a block.
+   * @private
+   * @param {object} pos - The block position ({x, y, z}).
+   * @returns {object[]} Array of neighbor positions.
+   */
+  static _getNeighbors(pos) {
+    const offsets = [
+      { x: 1, y: 0, z: 0 },
+      { x: -1, y: 0, z: 0 },
+      { x: 0, y: 1, z: 0 },
+      { x: 0, y: -1, z: 0 },
+      { x: 0, y: 0, z: 1 },
+      { x: 0, y: 0, z: -1 }
+    ];
+    return offsets.map(off => ({
+      x: pos.x + off.x,
+      y: pos.y + off.y,
+      z: pos.z + off.z
+    }));
+  }
+
+  /**
+   * Registers a neighbor listener for a given block position.
+   *
+   * @param {string} watcherId - Unique identifier for this listener.
+   * @param {object} pos - The block position to monitor ({x, y, z}).
+   * @param {Function} callback - Callback invoked on neighbor change, with signature:
+   *        onNeighborChanged(changedPos, newType, oldType, watcherPos, dimensionId)
+   * @param {object|string} [dimension] - Optional dimension (as a Dimension object or string). Defaults to "overworld".
+   */
+  static onNeighborChanged(watcherId, pos, callback, dimension) {
+    const resolved = resolveDimension(dimension);
+    const dimInstance = resolved.instance;
+    const dimId = resolved.id;
+    const neighbors = NeighborMonitor._getNeighbors(pos);
+    const cache = new Map();
+    // Prepopulate caches for each neighbor.
+    for (const nPos of neighbors) {
+      const key = NeighborMonitor._coordKey(nPos, dimId);
+      let type = null;
       try {
-        updateFluidState(e.block);
-      } catch (err) {
-        console.error("FluidBehaviorComponent onTick error:", err);
+        const block = dimInstance.getBlock(nPos);
+        type = block ? block.typeId : null;
+      } catch (e) {
+        type = null;
       }
-    },
-    
-    /**
-     * onPlayerDestroy is called when a player destroys the block.
-     * It cleans up the neighbor listener.
-     * @param {BlockComponentPlayerDestroyEvent} e 
-     */
-    onPlayerDestroy(e) {
-      if (this._unregisterNeighbor) {
-        this._unregisterNeighbor();
-        this._unregisterNeighbor = undefined;
-      }
+      cache.set(key, { type, lastTick: NeighborMonitor._currentTick });
+      NeighborMonitor._globalCache.set(key, { pos: nPos, type, lastTick: NeighborMonitor._currentTick });
     }
-    
-  }, true);
-});
+    const watcher = { id: watcherId, pos, dimension: dimInstance, dimensionId: dimId, neighbors, cache, callback };
+    NeighborMonitor._watchers.set(watcherId, watcher);
+  }
 
-export { };
+  /**
+   * Unregisters a neighbor listener by its watcher ID.
+   * @param {string} watcherId - The ID of the listener to remove.
+   */
+  static removeNeighborChangedListener(watcherId) {
+    NeighborMonitor._watchers.delete(watcherId);
+  }
+
+  /**
+   * Stops the scanning job and clears internal caches and watchers.
+   */
+  static dispose() {
+    if (NeighborMonitor._jobId !== undefined) {
+      system.clearJob(NeighborMonitor._jobId);
+      NeighborMonitor._jobId = undefined;
+    }
+    NeighborMonitor._watchers.clear();
+    NeighborMonitor._globalCache.clear();
+  }
+}
+
+// Mixin EventBus methods into NeighborMonitor’s prototype.
+Object.assign(NeighborMonitor.prototype, EventBus.prototype);
+
+// Export the API under a NeoForge-inspired alias.
+export const NeighborMonitorAPI = NeighborMonitor;
+
+/**
+ * Registers a Forge-like neighbor change listener on a given block position.
+ * This is designed for dynamic usage (e.g. for custom fluids), working in any dimension.
+ *
+ * The callback is invoked with the signature:
+ *   onNeighborChanged(changedPos, newType, oldType, blockPos, dimensionId)
+ *
+ * @param {string} id - Unique identifier for the listener.
+ * @param {{x: number, y: number, z: number}} pos - The block position to monitor.
+ * @param {Function} callback - Callback function invoked on neighbor change.
+ *        Signature: (changedPos, newType, oldType, blockPos, dimensionId)
+ * @param {object|string} [dimension] - Optional dimension (as a Dimension object or a string ID). Defaults to "overworld".
+ * @returns {Function} A function that, when called, unregisters this neighbor listener.
+ */
+export function onNeighborChanged(id, pos, callback, dimension) {
+  NeighborMonitorAPI.onNeighborChanged(id, pos, callback, dimension);
+  // Return an unregister function for dynamic removal.
+  return () => {
+    NeighborMonitorAPI.removeNeighborChangedListener(id);
+  };
+}

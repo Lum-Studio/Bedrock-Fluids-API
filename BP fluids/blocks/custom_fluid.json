@@ -6,18 +6,13 @@
       "menu_category": { "category": "none" },
       "states": {
         "lumstudio:depth": [6, 7, 5, 4, 3, 2, 1],
-        "lumstudio:direction": ["none", "s", "n", "e", "w", "ns", "ne", "se", "sw"],
         "fluid_state": ["empty", "flowing_5", "flowing_4", "flowing_3", "flowing_2", "flowing_1", "flowing_0", "full"],
         "slope": ["none", "n", "e", "s", "w", "ne", "nw", "se", "sw"],
-        "lumstudio:fluidMode": ["active"],
-        "lumstudio:geom": ["geometry.custom.fluid.oil.12"]
+        "lumstudio:fluidMode": ["active", "dormant"],
+        "lumstudio:geom": ["geometry.custom.fluid.oil.12_active", "geometry.custom.fluid.oil.12_dormant"]
       }
     },
     "components": {
-      "minecraft:light_dampening": 0,
-      "minecraft:collision_box": false,
-      "minecraft:selection_box": false,
-      "minecraft:destructible_by_explosion": false,
       "minecraft:material_instances": {
         "*": {
           "texture": "oil",
@@ -26,13 +21,26 @@
           "face_dimming": false
         }
       },
-      "minecraft:loot": "loot_tables/empty.json",
-      "tag:custom_fluid": {},
-      "tag:fluid": {},
+      "minecraft:collision_box": false,
+      "minecraft:selection_box": false,
+      "minecraft:destructible_by_explosion": false,
       "minecraft:tick": { "interval_range": [1, 1], "looping": true },
       "minecraft:custom_components": [ "lumstudio:fluidBehavior" ]
     },
     "permutations": [
+      {
+        "condition": "q.block_state('fluid_state') == 'flowing_5' && q.block_state('slope') == 'none' && q.block_state('lumstudio:fluidMode') == 'active'",
+        "components": {
+          "minecraft:geometry": "geometry.custom.fluid.oil.12_active"
+        }
+      },
+      {
+        "condition": "q.block_state('fluid_state') == 'flowing_5' && q.block_state('slope') == 'none' && q.block_state('lumstudio:fluidMode') == 'dormant'",
+        "components": {
+          "minecraft:geometry": "geometry.custom.fluid.oil.12_dormant"
+        }
+      },
+
       {
         "condition": "q.block_state('fluid_state') == 'flowing_5' && q.block_state('slope') == 'none'",
         "components": { "minecraft:geometry": "geometry.custom.fluid.oil.12_none" }
