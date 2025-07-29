@@ -26,8 +26,8 @@ def generate_model(depth_level, slope):
     """
     depth_fraction = depth_level / float(MAX_DEPTH)
     fluid_height = round(depth_fraction * 16)
-    # Use the integer depth level for a clean identifier
-    identifier = f"geometry.custom.fluid.oil.{depth_level}_{slope}"
+    # Use the integer depth level for an identifier
+    identifier = f"geometry.lumstudio.fluid.{depth_level}_{slope}"
     
     model = {
         "description": {
@@ -169,7 +169,7 @@ def generate_permutations():
         state_name = fluid_state_from_level(depth_level)
         for slope in SLOPE_VALUES:
             # Use the integer depth level for the identifier to match geometry
-            geom_id = f"geometry.custom.fluid.oil.{depth_level}_{slope}"
+            geom_id = f"geometry.lumstudio.fluid.{depth_level}_{slope}"
             # The condition in-game will check the integer 'lumstudio:depth' state
             condition = f"q.block_state('lumstudio:depth') == {depth_level -1} && q.block_state('slope') == '{slope}'"
             entry = {
