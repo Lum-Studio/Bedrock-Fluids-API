@@ -15,18 +15,19 @@ VISIBLE_BOUNDS_HEIGHT = 16
 VISIBLE_BOUNDS_OFFSET = [0, 0, 0]
 
 # Shared values for both generators
-DEPTH_VALUES = [0.125, 0.25, 0.375, 0.5, 0.625, 0.75, 0.875, 1.0]
+MAX_DEPTH = 8 # Number of fluid levels (from 1 to 8)
 SLOPE_VALUES = ["none", "n", "e", "s", "w", "ne", "nw", "se", "sw"]
 
 # --- Geometry Generation Logic (from fluids_geometry.py) ---
 
-def generate_model(depth, slope):
+def generate_model(depth_level, slope):
     """
     Generates a geometry model for a given fluid depth and slope state.
     """
-    fluid_height = round(depth * 16)
-    percent = int(depth * 100)
-    identifier = f"geometry.custom.fluid.oil.{percent}_{slope}"
+    depth_fraction = depth_level / float(MAX_DEPTH)
+    fluid_height = round(depth_fraction * 16)
+    # Use the integer depth level for a clean identifier
+    identifier = f"geometry.custom.fluid.oil.{depth_level}_{slope}"
     
     model = {
         "description": {
@@ -42,7 +43,8 @@ def generate_model(depth, slope):
     
     bone = {"name": "fluid", "pivot": [0, 0, 0], "cubes": []}
     
-    if slope == "none" or fluid_height < 4 or (1 - depth) < 0.01:
+    # Use the fraction for calculations
+    if slope == "none" or fluid_height < 4 or (1 - depth_fraction) < 0.01:
         cube = {
             "origin": [0, 0, 0],
             "size": [16, fluid_height, 16],
@@ -52,7 +54,7 @@ def generate_model(depth, slope):
         model["bones"].append(bone)
         return model
 
-    drop = round((1 - depth) * 4)
+    drop = round((1 - depth_fraction) * 4)
     
     slices = 8
     if slope in ["n", "s"]:
@@ -123,9 +125,10 @@ def generate_geometries():
     """Generates and writes the fluid_geometry.json file."""
     print("Generating fluid geometries...")
     geometry_models = []
-    for depth in DEPTH_VALUES:
+    # Iterate from 1 to MAX_DEPTH (e.g., 1 to 8)
+    for depth_level in range(1, MAX_DEPTH + 1):
         for slope in SLOPE_VALUES:
-            geometry_models.append(generate_model(depth, slope))
+            geometry_models.append(generate_model(depth_level, slope))
 
     output = {
         "format_version": GEOMETRY_FORMAT_VERSION,
@@ -140,8 +143,10 @@ def generate_geometries():
 
 # --- Permutation Generation Logic (from perm_generator_sen.py) ---
 
-def fluid_state(depth):
-    """Converts a numerical depth to a fluid state string."""
+def fluid_state_from_level(depth_level):
+    """Converts an integer depth level (1-8) to a fluid state string."""
+    # This now mirrors the JS logic where depth is an integer
+    depth_fraction = depth_level / float(MAX_DEPTH)
     thresholds = [
         (0.875, "full"),
         (0.75,  "flowing_0"),
@@ -150,26 +155,31 @@ def fluid_state(depth):
         (0.375, "flowing_3"),
         (0.25,  "flowing_4"),
         (0.125, "flowing_5"),
-        (0,     "empty")
     ]
     for thresh, state in thresholds:
-        if depth >= thresh:
+        if depth_fraction >= thresh:
             return state
+    return "empty" # Should not be reached if depth_level >= 1
 
 def generate_permutations():
     """Generates and writes the fluid_block_permutations.json file."""
     print("\nGenerating fluid block permutations...")
     permutations = []
-    for depth in DEPTH_VALUES:
-        base_state = fluid_state(depth)
-        percent = int(depth * 100)
+    for depth_level in range(1, MAX_DEPTH + 1):
+        state_name = fluid_state_from_level(depth_level)
         for slope in SLOPE_VALUES:
-            geom_id = f"geometry.custom.fluid.oil.{percent}_{slope}"
-            condition = f"q.block_state('fluid_state') == '{base_state}' && q.block_state('slope') == '{slope}'"
+            # Use the integer depth level for the identifier to match geometry
+            geom_id = f"geometry.custom.fluid.oil.{depth_level}_{slope}"
+            # The condition in-game will check the integer 'lumstudio:depth' state
+            condition = f"q.block_state('lumstudio:depth') == {depth_level -1} && q.block_state('slope') == '{slope}'"
             entry = {
                 "condition": condition,
                 "components": {
-                    "minecraft:geometry": geom_id
+                    "minecraft:geometry": geom_id,
+                    # Also set the fluid_state string for compatibility
+                    "minecraft:block_state": {
+                        "fluid_state": state_name
+                    }
                 }
             }
             permutations.append(entry)

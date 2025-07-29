@@ -32,7 +32,8 @@ function placeOrTakeFluid(itemStack, player, hit) {
     const finalPermutation = fluidPermutation
         .withState("lumstudio:depth", 7) // Max depth
         .withState("slope", "none")
-        .withState("fluid_state", "full");
+        .withState("fluid_state", "full")
+        .withState("lumstudio:fluidMode", "dormant");
 
     targetBlock.setPermutation(finalPermutation);
     
