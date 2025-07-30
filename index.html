@@ -3,7 +3,10 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Custom Fluid Maker</title>
+  <title>Custom Fluid Maker for GitHub Pages</title>
+  <!-- Load Libraries from CDN -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/uuid/8.3.2/uuid.min.js"></script>
   <style>
     body {
       font-family: sans-serif;
@@ -108,61 +111,97 @@
     </form>
   </div>
 
+  <!-- Load the generator logic -->
+  <script src="generator.js"></script>
+  
+  <!-- Main application script -->
   <script>
     document.getElementById('fluidForm').addEventListener('submit', async function (e) {
       e.preventDefault();
       const generateButton = document.getElementById('generateButton');
       const statusMessage = document.getElementById('statusMessage');
 
-      // Disable button and show status
       generateButton.disabled = true;
-      statusMessage.textContent = 'Generating... Please wait.';
+      statusMessage.textContent = 'Reading files...';
 
-      const formData = new FormData();
-      formData.append('name', document.getElementById('fluidName').value);
-      formData.append('id', document.getElementById('fluidID').value);
-      formData.append('fogColor', document.getElementById('fogColor').value);
-      formData.append('buoyancy', document.getElementById('buoyancy').value);
-      formData.append('damage', document.getElementById('damage').value);
-      formData.append('effect', document.getElementById('effect').value);
-      formData.append('burnsEntities', document.getElementById('burnsEntities').checked);
-      formData.append('supportsBoats', document.getElementById('supportsBoats').checked);
-      formData.append('texture', document.getElementById('texture').files[0]);
+      const config = {
+        name: document.getElementById('fluidName').value,
+        id: document.getElementById('fluidID').value,
+        fogColor: document.getElementById('fogColor').value,
+        buoyancy: parseFloat(document.getElementById('buoyancy').value),
+        damage: parseInt(document.getElementById('damage').value),
+        effect: document.getElementById('effect').value,
+        burnsEntities: document.getElementById('burnsEntities').checked,
+        supportsBoats: document.getElementById('supportsBoats').checked,
+      };
+      const textureFile = document.getElementById('texture').files[0];
 
       try {
-        const response = await fetch('/generate', {
-          method: 'POST',
-          body: formData, // FormData is sent as multipart/form-data
-        });
+        // Read the texture file into a buffer
+        const textureBuffer = await textureFile.arrayBuffer();
+        statusMessage.textContent = 'Generating assets...';
 
-        if (!response.ok) {
-          const errorData = await response.json();
-          throw new Error(errorData.message || 'Server responded with an error.');
-        }
+        // --- Start Generation ---
+        const zip = new JSZip();
+        const safeId = config.id.replace(':', '_');
+        const packName = `${config.name} Fluid Pack`;
+        const packDesc = `A custom fluid pack for ${config.name}.`;
 
-        // Get the filename from the Content-Disposition header
-        const disposition = response.headers.get('Content-Disposition');
-        const filename = disposition 
-          ? disposition.split('filename=')[1].replace(/"/g, '') 
-          : 'fluid_pack.mcpack';
+        // 1. Generate core assets
+        const { geometry, permutations } = generateGeometries();
+        const blockJson = getBlockJson(config);
+        const bucketJson = getBucketItemJson(config);
 
-        const blob = await response.blob();
-        const url = window.URL.createObjectURL(blob);
+        // 2. Generate manifests
+        const bpManifest = getManifestJson(packName, packDesc, "data");
+        const rpManifest = getManifestJson(packName, packDesc, "resources");
+
+        // 3. Generate texture configs
+        const blocksJson = { "format_version": [1, 1, 0], [config.id]: { "sound": "bucket.fill_lava", "textures": safeId } };
+        const itemTextureJson = {
+            "resource_pack_name": "vanilla", "texture_name": "atlas.items",
+            "texture_data": { [`${safeId}_bucket`]: { "textures": `textures/items/${safeId}_bucket` } }
+        };
+        const terrainTextureJson = {
+            "resource_pack_name": "vanilla", "texture_name": "atlas.terrain", "padding": 8, "num_mip_levels": 4,
+            "texture_data": { [safeId]: { "textures": `textures/blocks/${safeId}` } }
+        };
+
+        // 4. Add all files to the zip
+        statusMessage.textContent = 'Zipping files...';
+        const bp = zip.folder('BP');
+        bp.file('manifest.json', JSON.stringify(bpManifest, null, 2));
+        bp.folder('blocks').file(`${safeId}.json`, JSON.stringify(blockJson, null, 2));
+        bp.folder('blocks').file('fluid_block_permutations.json', JSON.stringify(permutations, null, 2));
+        bp.folder('items').file(`${safeId}_bucket.json`, JSON.stringify(bucketJson, null, 2));
+
+        const rp = zip.folder('RP');
+        rp.file('manifest.json', JSON.stringify(rpManifest, null, 2));
+        rp.file('blocks.json', JSON.stringify(blocksJson, null, 2));
+        rp.file('item_texture.json', JSON.stringify(itemTextureJson, null, 2));
+        rp.file('terrain_texture.json', JSON.stringify(terrainTextureJson, null, 2));
+        rp.folder('models').folder('blocks').file('fluid_geometry.json', JSON.stringify(geometry, null, 2));
+        rp.folder('textures').folder('blocks').file(`${safeId}.png`, textureBuffer);
+        rp.folder('textures').folder('items').file(`${safeId}_bucket.png`, textureBuffer); // Re-using texture for bucket
+
+        // 5. Generate and trigger download
+        const blob = await zip.generateAsync({ type: 'blob' });
+        const filename = `${config.name.replace(/\s/g, '_')}_Pack.mcpack`;
+        
         const a = document.createElement('a');
         a.style.display = 'none';
-        a.href = url;
+        a.href = URL.createObjectURL(blob);
         a.download = filename;
         document.body.appendChild(a);
         a.click();
-        window.URL.revokeObjectURL(url);
+        URL.revokeObjectURL(a.href);
         document.body.removeChild(a);
-        
+
         statusMessage.textContent = 'Generation complete! Check your downloads.';
       } catch (error) {
         console.error('Error:', error);
         statusMessage.textContent = `Error: ${error.message}`;
       } finally {
-        // Re-enable button
         generateButton.disabled = false;
       }
     });
