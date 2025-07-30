@@ -249,8 +249,8 @@ function getBlockJson(config, permutations) {
  * @returns {object}
  */
 function getBucketItemJson(config) {
-    const fluidId = config.id; // e.g., "lumstudio:oil"
-    const bucketId = `${fluidId}_bucket`; // e.g., "lumstudio:oil_bucket"
+    const fluidId = config.id; // e.g., "wiki:oil"
+    const bucketId = `${fluidId}_bucket`; // e.g., "wiki:oil_bucket"
     const fluidName = config.name; // e.g., "Oil"
 
     const components = {
@@ -259,15 +259,21 @@ function getBucketItemJson(config) {
         "minecraft:display_name": { "value": `Bucket of ${fluidName}` },
         "minecraft:creative_category": { "parent": "itemGroup.name.bucket" },
         "minecraft:hand_equipped": true,
-        "minecraft:use_duration": 1,
-        "minecraft:food": { "can_always_eat": true }, // This is a trick to get a use event
-        "minecraft:use_animation": "drink"
+        "minecraft:block_placer": {
+            "block": {
+                "name": fluidId,
+                "states": {
+                    "lumstudio:depth": 7,
+                    "slope": "none",
+                    "fluid_state": "full",
+                    "lumstudio:fluidMode": "dormant"
+                }
+            }
+        }
     };
-    // Dynamically add the placer tag
-    components[`tag:placer:${fluidId}`] = {};
 
     return {
-        "format_version": "1.16.100",
+        "format_version": "1.20.10",
         "minecraft:item": {
             "description": {
                 "identifier": bucketId,

@@ -383,71 +383,66 @@ for (const data of OriginalMethods) {
     const FLUIDS_JS_CONTENT = JSON.stringify(`import { ItemStack, BlockPermutation, system, world } from "@minecraft/server";
 import { AIR } from "./API";
 
+// This flag prevents multi-use bugs with buckets
 let currentTickRunned = false;
 
-function placeOrTakeFluid(itemStack, player, hit) {
-  const fluidPlacerTag = itemStack.getTags().find(str => str.startsWith("placer:"));
-  if (!hit) return;
+/**
+ * Handles a player using an empty bucket on a fluid source block.
+ * @param {ItemStack} itemStack The item being used.
+ * @param {Player} player The player using the item.
+ * @param {Block} block The block that was interacted with.
+ */
+function handleFluidTaking(itemStack, player, block) {
+  if (!block) return;
 
-  const { face, block } = hit;
-  const targetBlock = block.relative(face);
-
-  if (targetBlock.isAir && fluidPlacerTag) {
-    const fluidTypeId = fluidPlacerTag.slice(7);
-    const fluidPermutation = BlockPermutation.resolve(fluidTypeId)
-      .withState("lumstudio:depth", 7)
-      .withState("slope", "none")
-      .withState("fluid_state", "full")
-      .withState("lumstudio:fluidMode", "dormant");
+  // Native components now handle placing, so we only need to handle taking fluid.
+  const fluidState = block.permutation?.getState("fluid_state");
+  if (block.hasTag("fluid") && fluidState === "full" && itemStack.typeId === "minecraft:bucket") {
+    const bucketItem = new ItemStack(\"
     
-    targetBlock.setPermutation(fluidPermutation);
-    player.getComponent("equippable").setEquipment("Mainhand", new ItemStack("bucket"));
-    return;
-  }
-
-  const fluidState = targetBlock.permutation.getState("fluid_state");
-  if (targetBlock.hasTag("fluid") && fluidState === "full" && itemStack.typeId === "minecraft:bucket") {
-    const bucketItem = new ItemStack("\`\${targetBlock.typeId}_bucket\`");
-    targetBlock.setPermutation(AIR);
+    block.setPermutation(AIR);
     player.getComponent("equippable").setEquipment("Mainhand", bucketItem);
   }
 }
 
-world.afterEvents.itemUse.subscribe(({ itemStack, source: player }) => {
-  const hit = player.getBlockFromViewDirection({ includePassableBlocks: true, maxDistance: 6 });
-  if (hit) placeOrTakeFluid(itemStack, player, hit);
-});
-
+// Listen for item use on a block (e.g., right-clicking a fluid with a bucket)
 world.beforeEvents.itemUseOn.subscribe(ev => {
   if (currentTickRunned) {
     ev.cancel = true;
     return;
-  }
+  };
   currentTickRunned = true;
-  placeOrTakeFluid(ev.itemStack, ev.source, { block: ev.block, face: ev.blockFace });
-  system.run(() => { currentTickRunned = false; });
+  handleFluidTaking(ev.itemStack, ev.source, ev.block);
+  system.run(() => {
+    currentTickRunned = false;
+  });
 });
 
+// This interval handles fluid effects on players
 system.runInterval(() => {
   for (const player of world.getPlayers()) {
     const headBlock = player.getHeadLocation();
     const bodyBlock = player.location;
     const dimension = player.dimension;
 
+    // Fluid Fog Effect
     if (dimension.getBlock(headBlock)?.hasTag("fluid")) {
       player.runCommandAsync("fog @s push lumstudio:custom_fluid_fog fluid_fog");
     } else {
       player.runCommandAsync("fog @s remove fluid_fog");
     }
 
+    // Buoyancy & Slow Falling Effects
     const velocity = player.getVelocity();
     if (dimension.getBlock(bodyBlock)?.hasTag("fluid")) {
-      if (player.isJumping) {
-        player.addEffect("slow_falling", 5, { showParticles: false, amplifier: 1 });
-      }
-      if (velocity.y < 0.05) {
-        player.applyKnockback(0, 0, 0, Math.abs(velocity.y) * 0.3 + 0.08);
-      }
+        // Apply slow falling when jumping
+        if (player.isJumping) {
+            player.addEffect("slow_falling", 5, { showParticles: false, amplifier: 1 });
+        }
+        // Apply buoyancy to counteract gravity
+        if (velocity.y < 0.05) {
+             player.applyKnockback(0, 0, 0, Math.abs(velocity.y) * 0.3 + 0.08);
+        }
     }
   }
 }, 2);
@@ -492,14 +487,12 @@ export class FluidQueue {
         this.stop();
         this.#runId = system.runInterval(() => {
             for (const block of this.#instant) {
-                try { this.blockOperation(block); } catch (e) { console.error(\`FluidQueue Instant Error: \${e}\`); }
-            }
-            this.#instant.length = 0;
+                try { this.blockOperation(block); } catch (e) { console.error(\`FluidQueue Instant Error: \
 
             for (let i = 0; i < countPerTick && this.#optimized.length > 0; i++) {
                 const block = this.#optimized.shift();
                 if (block?.typeId === this.type) {
-                    try { this.blockOperation(block); } catch (e) { console.error(\`FluidQueue Ticking Error: \${e}\`); }
+                    try { this.blockOperation(block); } catch (e) { console.error(\`FluidQueue Ticking Error: \
                 }
             }
         }, 0);
