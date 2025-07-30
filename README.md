@@ -1,30 +1,35 @@
-# Bedrock Fluids API
+# Bedrock Custom Fluid Generator
 
-A proof-of-concept system for simulating custom fluids in Minecraft Bedrock Edition. This project provides a framework for creating realistic fluid dynamics by leveraging resource packs, behavior packs with custom scripting, and Python-based asset generation.
+A web-based tool for creating custom fluids in Minecraft Bedrock Edition. This project provides a user-friendly interface for generating complete, ready-to-use resource and behavior packs for custom fluids.
 
 ## Current Status
 
-This project is a functional proof-of-concept but is **incomplete**. The core fluid simulation logic is working, but the automated compiler for adding new fluids is not fully implemented. Adding new fluids currently requires manual changes to several files.
+This project is fully functional. The generation of fluid packs is handled entirely in the browser, and the tool produces a `.mcaddon` file that can be directly imported into Minecraft.
 
 ## How It Works
 
-The system is built on three main pillars:
+The generator is a single HTML file (`index.html`) that uses JavaScript to generate all the necessary files for a custom fluid. The core logic is in `generator.js`.
 
-1.  **State-Driven Geometry**: The visual appearance of the fluid is determined by block states, primarily `lumstudio:depth` (representing depth) and `slope` (representing flow direction). Each combination of these states corresponds to a unique block permutation with a specific 3D model.
+1.  **User Interface**: The `index.html` file provides a form for the user to define their fluid's properties, such as its name, ID, textures, and in-game behavior.
+2.  **Asset Generation**: The `generator.js` script contains all the logic for creating the fluid's 3D models, block permutations, and item definitions.
+3.  **Pack Generation**: When the user clicks "Generate," the script creates all the necessary JSON files and textures in memory.
+4.  **Zipping**: The generated files are then zipped into a `.mcaddon` file using the `JSZip` library.
+5.  **Download**: The user is prompted to download the generated `.mcaddon` file, which can then be imported into Minecraft.
 
-2.  **Asset Generation**: Python scripts (`generate_fluid_assets.py`) are used to pre-generate the complex JSON files that define the fluid's geometry and block state permutations.
+## How to Use
 
-3.  **Scripting Core**: A set of JavaScript files running in the behavior pack manages the fluid's logic.
-    -   A custom `onNeighborChanged` event is simulated by the `BlockUpdate.js` script, which hooks into dozens of game events (like block placement, explosions, piston movement) and even overrides native `Block` methods to detect changes.
-    -   `API.js` contains the core fluid dynamics logic, calculating how fluids should fall, spread, and dry up.
-    -   `queue.js` manages a block update queue to process fluid changes tick-by-tick without overwhelming the game engine.
-    -   `fluids.js` handles direct player interaction, such as using buckets and applying effects like fog and buoyancy.
-
-## How to Use (Current Manual Process)
-
-1.  **Generate Assets**: Use `generate_fluid_assets.py` to create the `fluid_geometry.json` and `fluid_block_permutations.json`.
-2.  **Create Fluid Definition**: Manually create the block JSON file in `BP fluids/blocks/` and add its textures and models to the resource pack (`RP fluids`).
-3.  **Register the Fluid**: In `BP fluids/scripts/API.js`, add your new fluid to the `Queues` object to register it with the update system.
-4.  **Implement Bucket**: Add logic to `fluids.js` to handle the placement and pickup of your new fluid with its corresponding bucket item.
-
-For the planned automated workflow, see `COMPILER_DESIGN.md`.
+1.  **Open `index.html`**: Open the `index.html` file in a web browser.
+2.  **Fill out the form**:
+    *   **Fluid Name**: The name of your fluid (e.g., "Liquid Bismuth").
+    *   **Block ID**: The fluid's unique identifier (e.g., `lumstudio:liquid_bismuth`).
+    *   **Fluid Texture**: The texture for the fluid block.
+    *   **Bucket Texture**: The texture for the fluid's bucket item.
+    *   **Fog Color**: The color of the fog effect when inside the fluid.
+    *   **Buoyancy**: How much the fluid pushes entities up.
+    *   **Damage Per Tick**: How much damage the fluid deals to entities inside it.
+    *   **Status Effect**: A status effect to apply to entities inside the fluid.
+    *   **Burns Entities**: Whether the fluid sets entities on fire.
+    *   **Supports Boats**: Whether boats can float on the fluid.
+3.  **Generate**: Click the "Generate Fluid Pack" button.
+4.  **Download**: Your browser will download a `.mcaddon` file.
+5.  **Import**: Open the downloaded file to import it into Minecraft.
