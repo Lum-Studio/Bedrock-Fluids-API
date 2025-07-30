@@ -70,7 +70,7 @@ app.post('/generate', upload.single('texture'), async (req, res) => {
         const zipBuffer = await zip.generateAsync({ type: 'nodebuffer' });
         res.set({
             'Content-Type': 'application/zip',
-            'Content-Disposition': `attachment; filename="${config.name.replace(/\s/g, '_')}_Pack.mcpack"`
+            'Content-Disposition': `attachment; filename="${config.name.replace(/\s/g, '_')}_Pack.zip"`
         });
         res.send(zipBuffer);
 

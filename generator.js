@@ -157,8 +157,8 @@ function fluidStateFromLevel(depthLevel) {
 }
 
 /**
- * Generates the complete fluid_block_permutations.json object.
- * @returns {object}
+ * Generates the array of permutation objects.
+ * @returns {Array<object>}
  */
 function generatePermutations() {
     const permutations = [];
@@ -171,17 +171,17 @@ function generatePermutations() {
                 condition: condition,
                 components: {
                     "minecraft:geometry": geomId,
-                    "minecraft:block_state": {
-                        "fluid_state": stateName,
-                    },
+                    "minecraft:material_instances": {
+                        "*": {
+                            "texture": "textures/blocks/this_is_a_temporary_placeholder", // This will be replaced by the main block's texture
+                            "render_method": "blend"
+                        }
+                    }
                 },
             });
         }
     }
-    return {
-        "format_version": PERMUTATIONS_FORMAT_VERSION,
-        "minecraft:client_block_permutations": permutations,
-    };
+    return permutations;
 }
 
 // --- File Generation Logic ---
@@ -189,9 +189,10 @@ function generatePermutations() {
 /**
  * Creates the JSON for the fluid's block definition file.
  * @param {object} config The fluid configuration from the frontend.
+ * @param {Array<object>} permutations The array of permutation objects.
  * @returns {object}
  */
-function getBlockJson(config) {
+function getBlockJson(config, permutations) {
     const fluidId = config.id; // e.g., "lumstudio:oil"
     const safeId = fluidId.replace(':', '_');
 
@@ -199,7 +200,10 @@ function getBlockJson(config) {
         "minecraft:material_instances": {
             "*": {
                 "texture": safeId, // Dynamic texture
-                "render_method": "blend"
+                "render_method": "blend",
+                "face_dimming": false,
+                "ambient_occlusion": false,
+                "fog_color": config.fogColor
             }
         },
         "minecraft:geometry": "geometry.lumstudio.fluid.8_none",
@@ -231,9 +235,7 @@ function getBlockJson(config) {
                 }
             },
             "components": components,
-            "permutations": [
-                // Permutations are now in a separate file
-            ]
+            "permutations": permutations
         }
     };
 }

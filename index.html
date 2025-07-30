@@ -83,6 +83,9 @@
       <label for="texture">Upload Fluid Texture (PNG)</label>
       <input type="file" id="texture" accept="image/png" required />
 
+      <label for="bucketTexture">Upload Bucket Texture (PNG)</label>
+      <input type="file" id="bucketTexture" accept="image/png" required />
+
       <label for="fogColor">Fog Color</label>
       <input type="color" id="fogColor" value="#777777" />
 
@@ -135,10 +138,12 @@
         supportsBoats: document.getElementById('supportsBoats').checked,
       };
       const textureFile = document.getElementById('texture').files[0];
+      const bucketTextureFile = document.getElementById('bucketTexture').files[0];
 
       try {
-        // Read the texture file into a buffer
+        // Read the texture files into buffers
         const textureBuffer = await textureFile.arrayBuffer();
+        const bucketTextureBuffer = await bucketTextureFile.arrayBuffer();
         statusMessage.textContent = 'Generating assets...';
 
         // --- Start Generation ---
@@ -148,8 +153,9 @@
         const packDesc = `A custom fluid pack for ${config.name}.`;
 
         // 1. Generate core assets
-        const { geometry, permutations } = generateGeometries();
-        const blockJson = getBlockJson(config);
+        const geometry = generateGeometries();
+        const permutations = generatePermutations();
+        const blockJson = getBlockJson(config, permutations);
         const bucketJson = getBucketItemJson(config);
 
         // 2. Generate manifests
@@ -157,7 +163,7 @@
         const rpManifest = getManifestJson(packName, packDesc, "resources");
 
         // 3. Generate texture configs
-        const blocksJson = { "format_version": [1, 1, 0], [config.id]: { "sound": "bucket.fill_lava", "textures": safeId } };
+        const blocksJson = { [config.id]: { "sound": "bucket.fill_lava", "textures": safeId } };
         const itemTextureJson = {
             "resource_pack_name": "vanilla", "texture_name": "atlas.items",
             "texture_data": { [`${safeId}_bucket`]: { "textures": `textures/items/${safeId}_bucket` } }
@@ -172,7 +178,6 @@
         const bp = zip.folder('BP');
         bp.file('manifest.json', JSON.stringify(bpManifest, null, 2));
         bp.folder('blocks').file(`${safeId}.json`, JSON.stringify(blockJson, null, 2));
-        bp.folder('blocks').file('fluid_block_permutations.json', JSON.stringify(permutations, null, 2));
         bp.folder('items').file(`${safeId}_bucket.json`, JSON.stringify(bucketJson, null, 2));
 
         const rp = zip.folder('RP');
@@ -182,7 +187,7 @@
         rp.file('terrain_texture.json', JSON.stringify(terrainTextureJson, null, 2));
         rp.folder('models').folder('blocks').file('fluid_geometry.json', JSON.stringify(geometry, null, 2));
         rp.folder('textures').folder('blocks').file(`${safeId}.png`, textureBuffer);
-        rp.folder('textures').folder('items').file(`${safeId}_bucket.png`, textureBuffer); // Re-using texture for bucket
+        rp.folder('textures').folder('items').file(`${safeId}_bucket.png`, bucketTextureBuffer);
 
         // 5. Generate and trigger download
         const blob = await zip.generateAsync({ type: 'blob' });
