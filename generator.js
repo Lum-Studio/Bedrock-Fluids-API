@@ -314,6 +314,22 @@ function getManifestJson(name, description, type) {
 }
 
 /**
+ * Creates the JavaScript code for the fluid's dynamic properties.
+ * @param {object} config The fluid configuration from the frontend.
+ * @returns {string}
+ */
+function getFluidConfigScript(config) {
+    return `// ---- THIS FILE IS AUTO-GENERATED. DO NOT EDIT. ----
+export const fluidConfig = {
+    buoyancy: ${config.buoyancy},
+    damage: ${config.damage},
+    effect: "${config.effect || ''}",
+    burnsEntities: ${config.burnsEntities}
+};
+`;
+}
+
+/**
  * Creates the JavaScript code for registering the fluid queues.
  * This is a separate file that will be imported by the main API.
  * @param {object} config The fluid configuration from the frontend.
