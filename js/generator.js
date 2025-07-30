@@ -1,31 +1,26 @@
-const API_JS_CONTENT = JSON.stringify(`import { world, system, BlockPermutation, Block } from "@minecraft/server";
+// --- SCRIPT TEMPLATES FOR THE NEW, REFACTORED ENGINE ---
+
+const SCRIPTS = {
+    "main.js": `import "./fluids.js";`,
+    "fluids.js": `import { world, system, Block, BlockPermutation, ItemStack } from "@minecraft/server";
 import { BlockUpdate } from "./BlockUpdate.js";
-import { Queues } from "./generated/register_fluids.js";
+import { FluidQueue } from "./queue.js";
+import { FluidRegistry } from "./registry.js";
+import { effectHandlers } from "./effects/index.js";
 
-/*========================================================================
-  Constants
-========================================================================*/
-
-export const AIR = BlockPermutation.resolve("air");
-export const DIRECTIONS = [
+const MAX_SPREAD_DISTANCE = 7;
+const UPDATES_PER_TICK = 20;
+const AIR = BlockPermutation.resolve("air");
+const DIRECTIONS = [
   { dx: 0, dy: 0, dz: -1, facing: "n" },
   { dx: 1, dy: 0, dz: 0, facing: "e" },
   { dx: 0, dy: 0, dz: 1, facing: "s" },
   { dx: -1, dy: 0, dz: 0, facing: "w" },
 ];
+const Queues = {};
+let currentTickRunned = false;
 
-/*========================================================================
-  Utility Functions
-========================================================================*/
-
-export function areEqualPermutations(perm1, perm2) {
-  if (!perm1 || !perm2) return false;
-  const states1 = perm1.getAllStates();
-  const states2 = perm2.getAllStates();
-  return Object.keys(states1).every(key => states1[key] === states2[key]);
-}
-
-export function fluidState(depth) {
+function fluidState(depth) {
   if (depth >= 0.875) return "full";
   if (depth >= 0.75) return "flowing_0";
   if (depth >= 0.625) return "flowing_1";
@@ -36,17 +31,13 @@ export function fluidState(depth) {
   return "empty";
 }
 
-export function calculateSlope(b) {
+function calculateSlope(b) {
   const open = [];
   for (const { dx, dz, facing } of DIRECTIONS) {
     try {
       const neighbor = b.offset({ x: dx, y: 0, z: dz });
-      if (neighbor && neighbor.isAir) {
-        open.push(facing);
-      }
-    } catch (e) {
-      // Ignore if neighbor is not loaded.
-    }
+      if (neighbor && neighbor.isAir) open.push(facing);
+    } catch (e) {}
   }
   if (open.length === 0) return "none";
   open.sort();
@@ -58,43 +49,24 @@ export function calculateSlope(b) {
   return open[0];
 }
 
-/*========================================================================
-  Core Fluid Logic
-========================================================================*/
-
-/**
- * The core update logic for a single fluid block.
- * This function is called by the FluidQueue for each block that needs an update.
- * @param {Block} b The fluid block to update.
- */
 function fluidUpdate(b) {
     if (!b || !b.isValid() || !b.permutation) return;
-
     const fluidBlock = b.permutation;
-    const maxSpreadDistance = 7; // This can be configured per fluid type later
     const fluidStates = fluidBlock.getAllStates();
     const depth = fluidStates["lumstudio:depth"];
-    const isSource = depth === maxSpreadDistance;
-    
+    const isSource = depth === MAX_SPREAD_DISTANCE;
     const hasFluidAbove = b.above()?.typeId === b.typeId;
     let isFallingFluid = hasFluidAbove || fluidStates["lumstudio:fluidMode"] === "active";
-
-    // Rule 1: Flowing down into air
     const belowBlock = b.below();
     if (belowBlock?.isAir) {
         const newPerm = fluidBlock.withState("lumstudio:fluidMode", "active");
         belowBlock.setPermutation(newPerm);
-        if (!isSource) {
-            b.setPermutation(AIR);
-        }
+        if (!isSource) b.setPermutation(AIR);
         return;
     }
-
-    // Rule 2: Drying up
     let canBeSustained = false;
-    if (isSource) {
-        canBeSustained = true;
-    } else {
+    if (isSource) canBeSustained = true;
+    else {
         for (const dir of DIRECTIONS) {
             const neighbor = b.offset(dir);
             if (neighbor?.typeId === b.typeId && neighbor.permutation.getState("lumstudio:depth") > depth) {
@@ -104,13 +76,10 @@ function fluidUpdate(b) {
         }
         if (hasFluidAbove) canBeSustained = true;
     }
-
     if (!canBeSustained) {
         b.setPermutation(AIR);
         return;
     }
-
-    // Rule 3: Spreading sideways
     if (depth > 0 && !isFallingFluid) {
         const newDepth = depth - 1;
         if (newDepth >= 0) {
@@ -123,99 +92,132 @@ function fluidUpdate(b) {
             }
         }
     }
-
-    // Final state update for visuals
     const newSlope = calculateSlope(b);
-    const newFluidState = fluidState(depth / maxSpreadDistance);
+    const newFluidState = fluidState(depth / MAX_SPREAD_DISTANCE);
     const newMode = isFallingFluid ? "active" : "dormant";
-    
-    const newPerm = fluidBlock.withState("fluid_state", newFluidState)
-                           .withState("slope", newSlope)
-                           .withState("lumstudio:fluidMode", newMode);
-
-    if (!areEqualPermutations(b.permutation, newPerm)) {
-        b.setPermutation(newPerm);
-    }
+    const newPerm = fluidBlock.withState("fluid_state", newFluidState).withState("slope", newSlope).withState("lumstudio:fluidMode", newMode);
+    if (b.permutation.matches(newPerm.type, newPerm.getAllStates())) b.setPermutation(newPerm);
 }
 
-/*========================================================================
-  Fluid Queue & Event Listener Initialization
-========================================================================*/
-
-// Start the run interval for all registered fluid queues.
-for (const queue of Object.values(Queues)) {
-  queue.run(20); // Process 20 updates per tick for each fluid type.
-}
-
-// Register a single, global listener for all block updates.
-BlockUpdate.on((update) => {
-  const block = update.block;
-  
-  if (block && block.isValid() && Queues[block.typeId]) {
-    const queue = Queues[block.typeId];
-    queue.add(block);
+function placeOrTakeFluid(itemStack, player, hit) {
+  const fluidPlacerTag = itemStack.getTags().find((str) => str.startsWith("placer:"));
+  if (!hit) return;
+  const { face, block } = hit;
+  const targetBlock = block.relative(face);
+  if (targetBlock.isAir && fluidPlacerTag) {
+    const fluidTypeId = fluidPlacerTag.slice(7);
+    if (!FluidRegistry[fluidTypeId]) return;
+    const fluidPermutation = BlockPermutation.resolve(fluidTypeId);
+    const finalPermutation = fluidPermutation.withState("lumstudio:depth", 7).withState("slope", "none").withState("fluid_state", "full").withState("lumstudio:fluidMode", "dormant");
+    targetBlock.setPermutation(finalPermutation);
+    player.getComponent("equippable").setEquipment("Mainhand", new ItemStack("bucket"));
+    return;
   }
-});
-`);
+  const fluidState = targetBlock.permutation?.getState("fluid_state");
+  if (targetBlock.hasTag("fluid") && fluidState === "full" && itemStack.typeId === "minecraft:bucket") {
+    const bucketItem = new ItemStack(`\${targetBlock.typeId}_bucket`);
+    targetBlock.setPermutation(AIR);
+    player.getComponent("equippable").setEquipment("Mainhand", bucketItem);
+  }
+}
 
-    const BLOCKUPDATE_JS_CONTENT = JSON.stringify(`import { world, system, Block, Dimension } from "@minecraft/server";
+function initialize() {
+    for (const fluidId in FluidRegistry) {
+        Queues[fluidId] = new FluidQueue(fluidUpdate, fluidId);
+        Queues[fluidId].run(UPDATES_PER_TICK);
+    }
+    BlockUpdate.on((update) => {
+        const block = update.block;
+        if (block && block.isValid() && Queues[block.typeId]) Queues[block.typeId].add(block);
+    });
+    world.afterEvents.itemUse.subscribe(({ itemStack, source: player }) => {
+        const hit = player.getBlockFromViewDirection({ includePassableBlocks: true, maxDistance: 6 });
+        if (hit) placeOrTakeFluid(itemStack, player, hit);
+    });
+    world.beforeEvents.itemUseOn.subscribe((ev) => {
+        if (currentTickRunned) {
+            ev.cancel = true;
+            return;
+        }
+        currentTickRunned = true;
+        placeOrTakeFluid(ev.itemStack, ev.source, { block: ev.block, face: ev.blockFace });
+        system.run(() => { currentTickRunned = false; });
+    });
+    system.runInterval(() => {
+        const players = world.getPlayers();
+        const processedEntities = new Set();
+        for (const player of players) {
+            const dimension = player.dimension;
+            const entitiesInRadius = dimension.getEntities({ location: player.location, maxDistance: 64 });
+            const headBlock = player.getHeadLocation();
+            const fluidInHead = dimension.getBlock(headBlock)?.typeId;
+            const fluidDataInHead = FluidRegistry[fluidInHead];
+            if (fluidDataInHead) player.runCommandAsync(`fog @s push lumstudio:\${fluidDataInHead.fog ?? "default"}_fog fluid_fog`);
+            else player.runCommandAsync("fog @s remove fluid_fog");
+            for (const entity of entitiesInRadius) {
+                if (processedEntities.has(entity.id)) continue;
+                processedEntities.add(entity.id);
+                const bodyBlock = entity.location;
+                const fluidInBody = dimension.getBlock(bodyBlock)?.typeId;
+                const fluidDataInBody = FluidRegistry[fluidInBody];
+                if (fluidDataInBody) {
+                    if (entity.isJumping) entity.addEffect("slow_falling", 5, { showParticles: false, amplifier: 1 });
+                    const velocity = entity.getVelocity();
+                    if (velocity.y < 0.05) entity.applyKnockback(0, 0, 0, Math.abs(velocity.y) * 0.3 + (fluidDataInBody.buoyancy || 0));
+                    for (const key in fluidDataInBody) {
+                        if (effectHandlers[key]) {
+                            try {
+                                effectHandlers[key](entity, fluidDataInBody);
+                            } catch (e) {
+                                console.error(`Error applying effect for key '\${key}' on entity \${entity.id}: \${e}`);
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }, 2);
+}
+initialize();`,
+    "registry.js": `export const FluidRegistry = {
+  "lumstudio:super_hot_magma": {
+    damage: 2,
+    burnTime: 5,
+    fog: "orange",
+    buoyancy: -0.02,
+    boat: false,
+  },
+  "lumstudio:distilled_water": {
+    damage: 0,
+    fog: "blue",
+    buoyancy: 0.03,
+    boat: true,
+  },
+  "lumstudio:liquid_bismuth": {
+    damage: 0,
+    fog: "gray",
+    buoyancy: -0.01,
+    effect: "slowness",
+    boat: false,
+  },
+};`,
+    "BlockUpdate.js": `import { world, system, Block, Dimension } from "@minecraft/server";
 export { BlockUpdate };
-
-/**
- * @typedef {Object} Offset
- * @property {number} x
- * @property {number} y
- * @property {number} z
- */
-
 const Events = {};
-const Offsets = [
-  { x: 0, y: 0, z: 0 }, { x: 1, y: 0, z: 0 }, { x: -1, y: 0, z: 0 },
-  { x: 0, y: 1, z: 0 }, { x: 0, y: -1, z: 0 }, { x: 0, y: 0, z: 1 },
-  { x: 0, y: 0, z: -1 }
-];
+const Offsets = [ { x: 0, y: 0, z: 0 }, { x: 1, y: 0, z: 0 }, { x: -1, y: 0, z: 0 }, { x: 0, y: 1, z: 0 }, { x: 0, y: -1, z: 0 }, { x: 0, y: 0, z: 1 }, { x: 0, y: 0, z: -1 } ];
 let LastEventId = -1;
-
 class BlockUpdate {
-  constructor(data) {
-    this.block = data.block;
-    this.source = data.source;
-  }
-
-  static on(callback) {
-    const id = ++LastEventId + "";
-    Events[id] = callback;
-    return id;
-  }
-
-  static off(id) {
-    delete Events[id];
-  }
-
-  static trigger(source) {
-    for (const offset of Offsets) {
-      try {
-        const block = source.offset(offset);
-        if (block) BlockUpdate.triggerEvents({ block, source });
-      } catch {}
-    }
-  }
-
-  static triggerEvents(data) {
-    const update = new BlockUpdate(data);
-    Object.values(Events).forEach(callback => callback(update));
-  }
+  #block; #source;
+  constructor(data) { this.#block = data.block; this.#source = data.source; }
+  get block() { return this.#block; }
+  get source() { return this.#source; }
+  static on(callback) { LastEventId++; const id = LastEventId + ""; Events[id] = callback; return id; }
+  static off(id) { delete Events[id]; }
+  static trigger(source) { for (const offset of Offsets) { let block; try { block = source.offset(offset); } catch {} if (block !== undefined) BlockUpdate.triggerEvents({ block, source }); } }
+  static triggerEvents(data) { const update = new BlockUpdate(data); Object.values(Events).forEach((callback) => callback(update)); }
 }
-
 const easyTrigger = (data) => BlockUpdate.trigger(data.block);
-
-world.beforeEvents.playerInteractWithBlock.subscribe(data => {
-  if (!data.isFirstEvent) return;
-  system.run(() => {
-    if (data.block.isValid && !data.cancel) BlockUpdate.trigger(data.block);
-  });
-});
-
+world.beforeEvents.playerInteractWithBlock.subscribe((data) => { if (!data.isFirstEvent) return; system.run(() => { if (!data.block.isValid || data.cancel) return; BlockUpdate.trigger(data.block); }); });
 world.afterEvents.playerBreakBlock.subscribe(easyTrigger);
 world.afterEvents.buttonPush.subscribe(easyTrigger);
 world.afterEvents.leverAction.subscribe(easyTrigger);
@@ -224,164 +226,82 @@ world.afterEvents.playerPlaceBlock.subscribe(easyTrigger);
 world.afterEvents.pressurePlatePop.subscribe(easyTrigger);
 world.afterEvents.pressurePlatePush.subscribe(easyTrigger);
 world.afterEvents.tripWireTrip.subscribe(easyTrigger);
-world.afterEvents.projectileHitBlock.subscribe(data => BlockUpdate.trigger(data.getBlockHit().block));
-
-world.afterEvents.explosion.subscribe(data => {
-  const triggeredBlocks = data.getImpactedBlocks().slice();
-  for (const source of triggeredBlocks) {
-    BlockUpdate.triggerEvents({ block: source });
-    for (const offset of Offsets) {
-      try {
-        const neighbor = source.offset(offset);
-        if (neighbor && !triggeredBlocks.includes(neighbor)) {
-          triggeredBlocks.push(neighbor);
-          BlockUpdate.triggerEvents({ block: neighbor, source });
-        }
-      } catch {}
-    }
-  }
-});
-
-const OriginalMethods = [
-  { class: Block, name: "setType" }, { class: Block, name: "setPermutation" },
-  { class: Block, name: "setWaterlogged" }, { class: Dimension, name: "setBlockType" },
-  { class: Dimension, name: "setBlockPermutation" }
-];
-
-for (const data of OriginalMethods) {
-  const originalMethod = data.class.prototype[data.name];
-  data.class.prototype[data.name] = function(...args) {
-    originalMethod.apply(this, args);
-    const block = this instanceof Dimension ? this.getBlock(args[0]) : this;
-    if (block) BlockUpdate.trigger(block);
-  };
-}
-`);
-
-    const FLUIDS_JS_CONTENT = JSON.stringify(`import { ItemStack, BlockPermutation, system, world } from "@minecraft/server";
-import { AIR } from "./API";
-
-// This flag prevents multi-use bugs with buckets
-let currentTickRunned = false;
-
-/**
- * Handles a player using an empty bucket on a fluid source block.
- * @param {ItemStack} itemStack The item being used.
- * @param {Player} player The player using the item.
- * @param {Block} block The block that was interacted with.
- */
-function handleFluidTaking(itemStack, player, block) {
-  if (!block) return;
-
-  // Native components now handle placing, so we only need to handle taking fluid.
-  const fluidState = block.permutation?.getState("fluid_state");
-  if (block.hasTag("fluid") && fluidState === "full" && itemStack.typeId === "minecraft:bucket") {
-    const bucketItem = new ItemStack(\"
-    
-    block.setPermutation(AIR);
-    player.getComponent("equippable").setEquipment("Mainhand", bucketItem);
-  }
-}
-
-// Listen for item use on a block (e.g., right-clicking a fluid with a bucket)
-world.beforeEvents.itemUseOn.subscribe(ev => {
-  if (currentTickRunned) {
-    ev.cancel = true;
-    return;
-  };
-  currentTickRunned = true;
-  handleFluidTaking(ev.itemStack, ev.source, ev.block);
-  system.run(() => {
-    currentTickRunned = false;
-  });
-});
-
-// This interval handles fluid effects on players
-system.runInterval(() => {
-  for (const player of world.getPlayers()) {
-    const headBlock = player.getHeadLocation();
-    const bodyBlock = player.location;
-    const dimension = player.dimension;
-
-    // Fluid Fog Effect
-    if (dimension.getBlock(headBlock)?.hasTag("fluid")) {
-      player.runCommandAsync("fog @s push lumstudio:custom_fluid_fog fluid_fog");
-    } else {
-      player.runCommandAsync("fog @s remove fluid_fog");
-    }
-
-    // Buoyancy & Slow Falling Effects
-    const velocity = player.getVelocity();
-    if (dimension.getBlock(bodyBlock)?.hasTag("fluid")) {
-        // Apply slow falling when jumping
-        if (player.isJumping) {
-            player.addEffect("slow_falling", 5, { showParticles: false, amplifier: 1 });
-        }
-        // Apply buoyancy to counteract gravity
-        if (velocity.y < 0.05) {
-             player.applyKnockback(0, 0, 0, Math.abs(velocity.y) * 0.3 + 0.08);
-        }
-    }
-  }
-}, 2);
-`);
-
-    const QUEUE_JS_CONTENT = JSON.stringify(`import { system } from "@minecraft/server";
-
+world.afterEvents.projectileHitBlock.subscribe((data) => { BlockUpdate.trigger(data.getBlockHit().block); });
+world.afterEvents.explosion.subscribe((data) => { const triggeredBlocks = data.getImpactedBlocks().slice(); const initialLength = triggeredBlocks.length; for (let i = 0; i < initialLength; i++) { const source = triggeredBlocks[i]; BlockUpdate.triggerEvents({ block: source }); for (const offset of Offsets) { let neighbor; try { neighbor = source.offset(offset); } catch {} if (neighbor !== undefined && !triggeredBlocks.includes(neighbor)) { triggeredBlocks.push(neighbor); BlockUpdate.triggerEvents({ block: neighbor, source }); } } } });
+const OriginalMethods = [ { class: Block, name: "setType" }, { class: Block, name: "setPermutation" }, { class: Block, name: "setWaterlogged" }, { class: Dimension, name: "setBlockType" }, { class: Dimension, name: "setBlockPermutation" } ];
+for (const data of OriginalMethods) { data.method = data.class.prototype[data.name]; data.class.prototype[data.name] = function (arg1, arg2) { if (this instanceof Dimension) { data.method.bind(this)(arg1, arg2); const block = this.getBlock(arg1); if (block !== undefined) BlockUpdate.trigger(block); } else { data.method.bind(this)(arg1); BlockUpdate.trigger(this); } }; }`,
+    "queue.js": `import { system } from "@minecraft/server";
 export class FluidQueue {
-    #marked = new Set();
-    #optimized = [];
-    #instant = [];
-    #isRunning = false;
-    #runId;
+    #marked = new Set(); #optimized = []; #instant = []; #isRunning = false; #runId;
+    constructor(operation, blockTypeId) { if (typeof operation !== 'function' || operation.length !== 1) throw new Error("Operation should be a function with one parameter"); this.type = blockTypeId; this.blockOperation = operation; }
+    add(block) { if (!this.#isRunning) console.warn("§cThe fluid queue is stopped, you can't use any methods"); else if (block.typeId === this.type) { if (this.#marked.has(block)) { this.#instant.push(block); this.#marked.delete(block); const index = this.#optimized.findIndex((v) => v === block); if (index !== -1) this.#optimized.splice(index, 1); } else this.#optimized.push(block); } }
+    skipQueueFor(block) { this.#marked.add(block); }
+    run(countPerTick) { this.stop(); this.#runId = system.runInterval(() => { for (const block of this.#instant) { try { this.blockOperation(block); } catch (error) { console.error(`FluidQueue of \${this.type}: Instant: \${error}`); } } this.#instant.length = 0; for (let iteration = 0; iteration < countPerTick; iteration++) { if (this.#optimized.length === 0) break; const block = this.#optimized.shift(); if (!block?.typeId || block.typeId !== this.type) continue; try { this.blockOperation(block); } catch (error) { console.error(`FluidQueue of \${this.type}: Ticking: Iteration #\${iteration}: \${error}`); } } }, 0); this.#isRunning = true; }
+    stop() { if (this.#isRunning) { system.clearRun(this.#runId); this.#isRunning = false; } }
+}`,
+    "effects/index.js": `import { apply as applyDamage } from "./damage.js";
+import { apply as applyBurn } from "./burn.js";
+import { apply as applyStatusEffect } from "./statusEffect.js";
+import { apply as applyBoat } from "./boat.js";
+export const effectHandlers = {
+    damage: applyDamage,
+    burnTime: applyBurn,
+    effect: applyStatusEffect,
+    boat: applyBoat,
+};`,
+    "effects/damage.js": `export function apply(entity, fluidData) { if (fluidData.damage > 0 && entity.hasComponent("minecraft:health")) entity.applyDamage(fluidData.damage); }`,
+    "effects/burn.js": `export function apply(entity, fluidData) { if (fluidData.burnTime > 0) entity.setOnFire(fluidData.burnTime, true); }`,
+    "effects/statusEffect.js": `export function apply(entity, fluidData) { if (fluidData.effect) entity.addEffect(fluidData.effect, 40, { showParticles: false }); }`,
+    "effects/boat.js": `export function apply(entity, fluidData) { if (entity.typeId === "minecraft:boat" && fluidData.boat) entity.applyImpulse({ x: 0, y: 0.04, z: 0 }); }`,
+};
 
-    constructor(operation, blockTypeId) {
-        if (typeof operation !== 'function' || operation.length !== 1) {
-            throw new Error("Operation should be a function with one parameter");
-        }
-        this.type = blockTypeId;
-        this.blockOperation = operation;
-    }
+// --- CORE GENERATOR FUNCTIONS ---
 
-    add(block) {
-        if (!this.#isRunning) return;
-        if (block.typeId !== this.type) return;
+function getManifestJson(packName, packDesc, type) {
+    const headerUuid = uuid.v4();
+    const base = {
+        format_version: 2,
+        header: {
+            name: packName,
+            description: packDesc,
+            uuid: headerUuid,
+            version: [1, 0, 0],
+            min_engine_version: [1, 20, 60]
+        },
+        modules: []
+    };
 
-        if (this.#marked.has(block)) {
-            this.#instant.push(block);
-            this.#marked.delete(block);
-            const index = this.#optimized.indexOf(block);
-            if (index !== -1) this.#optimized.splice(index, 1);
-        } else {
-            this.#optimized.push(block);
-        }
-    }
-
-    skipQueueFor(block) {
-        this.#marked.add(block);
-    }
-
-    run(countPerTick) {
-        this.stop();
-        this.#runId = system.runInterval(() => {
-            for (const block of this.#instant) {
-                try { this.blockOperation(block); } catch (e) { console.error(\`FluidQueue Instant Error: \
-
-            for (let i = 0; i < countPerTick && this.#optimized.length > 0; i++) {
-                const block = this.#optimized.shift();
-                if (block?.typeId === this.type) {
-                    try { this.blockOperation(block); } catch (e) { console.error(\`FluidQueue Ticking Error: \
-                }
+    if (type === 'resources') {
+        base.modules.push({
+            description: "Resources",
+            type: "resources",
+            uuid: uuid.v4(),
+            version: [1, 0, 0]
+        });
+    } else { // Behavior Pack
+        base.modules.push({
+            description: "Data",
+            type: "data",
+            uuid: uuid.v4(),
+            version: [1, 0, 0]
+        });
+        base.modules.push({
+            description: "Scripts",
+            type: "script",
+            language: "javascript",
+            uuid: uuid.v4(),
+            version: [1, 0, 0],
+            entry: "scripts/main.js"
+        });
+        base.dependencies = [
+            {
+                "module_name": "@minecraft/server",
+                "version": "1.12.0-beta"
             }
-        }, 0);
-        this.#isRunning = true;
+        ];
     }
-
-    stop() {
-        if (this.#isRunning) {
-            system.clearRun(this.#runId);
-            this.#isRunning = false;
-        }
-    }
+    return base;
 }
-`);
+
+// Note: The actual implementation of getBlockJson, getBucketItemJson, etc.
+// are now correctly handled by the imported geometric_gen.js script.
