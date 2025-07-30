@@ -1,0 +1,16 @@
+{
+  "fluids": [
+    {
+      "id": "oil",
+      "name": "Oil",
+      "maxSpreadDistance": 7,
+      "tickDelay": 20
+    },
+    {
+      "id": "honey",
+      "name": "Honey",
+      "maxSpreadDistance": 4,
+      "tickDelay": 40
+    }
+  ]
+}

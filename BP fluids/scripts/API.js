@@ -1,5 +1,5 @@
 import { world, system, BlockPermutation, Block } from "@minecraft/server";
-import { BlockUpdate } from "./NeighborChanged.js";
+import { BlockUpdate } from "./BlockUpdate.js";
 import { FluidQueue } from "./queue";
 
 /*========================================================================
