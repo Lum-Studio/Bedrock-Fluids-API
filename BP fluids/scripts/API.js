@@ -147,11 +147,7 @@ function fluidUpdate(b) {
 ========================================================================*/
 
 // A map of all registered fluid types and their corresponding queues.
-export const Queues = {
-  "lumstudio:oil": new FluidQueue(fluidUpdate, "lumstudio:oil"),
-  // To add a new fluid, register it here:
-  // "lumstudio:my_new_fluid": new FluidQueue(fluidUpdate, "lumstudio:my_new_fluid"),
-};
+import { Queues } from "./generated/register_fluids.js";
 
 // Start the run interval for all registered fluid queues.
 for (const queue of Object.values(Queues)) {

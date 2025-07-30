@@ -197,6 +197,12 @@ function getBlockJson(config, permutations) {
     const safeId = fluidId.replace(':', '_');
 
     const components = {
+        "minecraft:tags": {
+            "tags": [
+                "fluid",
+                safeId
+            ]
+        },
         "minecraft:material_instances": {
             "*": {
                 "texture": safeId, // Dynamic texture
@@ -216,11 +222,8 @@ function getBlockJson(config, permutations) {
         },
         "minecraft:loot": "loot_tables/empty.json",
         "minecraft:destructible_by_mining": { "seconds_to_destroy": 100 },
-        "minecraft:destructible_by_explosion": { "explosion_resistance": 500 },
-        "tag:fluid": {}
+        "minecraft:destructible_by_explosion": { "explosion_resistance": 500 }
     };
-    // Dynamically add the specific fluid tag
-    components[`tag:${safeId}`] = {};
 
     return {
         "format_version": "1.19.70",
@@ -302,4 +305,24 @@ function getManifestJson(name, description, type) {
             }
         ]
     };
+}
+
+/**
+ * Creates the JavaScript code for registering the fluid queues.
+ * This is a separate file that will be imported by the main API.
+ * @param {object} config The fluid configuration from the frontend.
+ * @returns {string}
+ */
+function getRegistrationScript(config) {
+    const fluidId = config.id;
+    const tickDelay = config.tickDelay || 20; // Default to 20 if not provided
+
+    return `// ---- THIS FILE IS AUTO-GENERATED. DO NOT EDIT. ----
+import { FluidQueue } from "../queue";
+import { fluidUpdate } from "../API";
+
+export const Queues = {
+  "${fluidId}": new FluidQueue(fluidUpdate, "${fluidId}", ${tickDelay}),
+};
+`;
 }
