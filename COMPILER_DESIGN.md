@@ -1,3 +1,5 @@
+> **Note:** This document describes the **intended design** for an automated fluid compiler. The implementation in `build_fluids.py` is currently **incomplete** and does not perform all the functions described here. The current method for adding new fluids is a manual process. Please refer to `FluidsAPI.md` for details on the current manual workflow.
+
 # Bedrock Fluids Compiler Design
 
 This document outlines the design for a central compiler script that automates the creation and management of custom fluids. The goal is to allow users to define fluids in a single configuration file, and have the compiler generate all the necessary assets and code.

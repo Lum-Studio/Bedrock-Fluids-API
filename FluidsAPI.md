@@ -10,7 +10,7 @@ Minecraft Bedrock Edition does not offer a built-in API for creating custom flui
 
 The API is built on three main pillars:
 
-1.  **State-Driven Geometry**: The visual appearance of the fluid is determined by the block's states, primarily `fluid_state` (representing depth) and `slope` (representing flow direction). Each combination of these states corresponds to a unique block permutation.
+1.  **State-Driven Geometry**: The visual appearance of the fluid is determined by the block's states, primarily `lumstudio:depth` (representing depth) and `slope` (representing flow direction). Each combination of these states corresponds to a unique block permutation.
 
 2.  **Dynamic Geometry Generation**: Python scripts are used to pre-generate the JSON files that define the fluid's geometry and block permutations. This approach allows for complex visual effects without requiring real-time model creation in-game.
 
@@ -20,49 +20,43 @@ The API is built on three main pillars:
 
 ### 1. Python Generators
 
--   **`fluids_geometry.py`**: Generates `fluid_geometry.json`, which contains the definitions for all the possible 3D models (geometries) of the fluid. It creates different models for various fluid depths and flow directions (including cardinal and diagonal slopes).
--   **`perm_generator_sen.py`**: Generates `fluid_block_permutations.json`, which defines the permutations that link specific block states (like `fluid_state` and `slope`) to the corresponding geometry from `fluid_geometry.json`.
+-   **`generate_fluid_assets.py`**: Generates `fluid_geometry.json` (all possible 3D models for fluid depths and slopes) and `fluid_block_permutations.json` (the permutations linking block states to a geometry).
+-   **`build_fluids.py`**: An **incomplete** compiler script intended to automate the entire process of creating fluids from a config file. See `COMPILER_DESIGN.md` for its intended functionality.
 
 ### 2. Behavior Pack (`BP fluids`)
 
--   **`blocks/custom_fluid.json`**: The core block definition file. It defines the `lumstudio:oil` block, its possible states (`fluid_state`, `slope`, `lumstudio:depth`, etc.), and attaches the custom script component `lumstudio:fluidBehavior`.
--   **`scripts/SenFluids.js`**: This script registers and implements the `lumstudio:fluidBehavior` custom component. This component is the brain of the fluid, reacting to game events like `onPlace`, `onTick`, and `onPlayerDestroy`. It's responsible for updating the fluid's state based on its surroundings.
--   **`scripts/NeighborChanged.js`**: A critical and innovative part of the API. Since Bedrock has no native `onNeighborChanged` event, this script simulates it. It monitors the blocks adjacent to a fluid block and triggers updates when they change. This is achieved through an efficient, cooperative scanning loop that minimizes performance impact.
--   **`scripts/fluids.js`**: This script contains duplicated and sometimes conflicting logic, but its primary intended role is to handle direct player interactions with the fluid, such as placing/taking fluid with a bucket, and applying effects like buoyancy and fog. It also contains the core fluid update logic (`fluidBasic`) and a system for queuing block updates.
--   **`scripts/queue.js`**: Implements the `FluidQueue` class, a system for managing and processing fluid block updates over time. This prevents the game from being overwhelmed by too many simultaneous updates, which is crucial for performance. It processes a limited number of updates per tick from an `optimized` queue and handles high-priority updates in an `instant` queue.
+-   **`blocks/custom_fluid.json`**: An example block definition file. It defines the `lumstudio:oil` block and its possible states (`lumstudio:depth`, `slope`, `fluid_state`, etc.).
+-   **`scripts/API.js`**: The brain of the fluid simulation. It contains the core `fluidUpdate` function that calculates how a fluid block should fall, spread to neighbors, or dry up based on its surroundings. It also contains the central `Queues` object where all active fluids must be registered.
+-   **`scripts/BlockUpdate.js`**: A critical and innovative part of the API that simulates a universal `onNeighborChanged` event. Since Bedrock has no native support for this, this script listens to a wide array of game events (player actions, pistons, explosions) and overrides native `Block.setPermutation()` methods to detect any block change in the world. When a change is detected, it notifies the core `API.js` script.
+-   **`scripts/fluids.js`**: This script handles direct player interactions with fluids. This includes the logic for placing fluid from a bucket and picking it up with an empty bucket. It also manages applying effects to players inside a fluid, such as buoyancy and fog.
+-   **`scripts/queue.js`**: Implements the `FluidQueue` class, a system for managing and processing fluid block updates over time. This prevents the game from being overwhelmed by too many simultaneous updates, which is crucial for performance. It processes a limited number of updates per tick.
 
 ### 3. Resource Pack (`RP fluids`)
 
--   **`models/`**: This directory would contain the `fluid_geometry.json` generated by the Python script.
+-   **`models/`**: This directory contains the `fluid_geometry.json` generated by the Python script.
 -   **`textures/`**: Contains the image files for the fluid's appearance.
 -   **`blocks.json`**: A standard resource pack file that maps the `lumstudio:oil` block to its textures and models.
 
 ## How it Works: The Fluid Lifecycle
 
-1.  **Placement**: A player places a fluid block (e.g., from a bucket).
-2.  **Initialization**: The `onPlace` event in `SenFluids.js` fires. It initializes the block's states (depth, slope, etc.) and registers it with the `NeighborChanged.js` monitor.
-3.  **Update Trigger**: The fluid's state needs to be updated in two scenarios:
-    -   **Periodic Tick**: The `onTick` event in `SenFluids.js` fires regularly.
-    -   **Neighbor Change**: The `NeighborChanged.js` monitor detects a change in an adjacent block (e.g., a block is broken) and triggers an update.
-4.  **State Calculation**: When an update is triggered, the `fluidBasic` function (in `fluids.js`) is called via the `FluidQueue`. This function:
-    -   Checks the surrounding blocks (above, below, and horizontally).
-    -   Determines if the fluid should flow, fall, or be removed.
-    -   Calculates the new depth and slope.
-5.  **Permutation Update**: The script updates the block's permutation with the newly calculated states.
-6.  **Rendering**: The game client sees the new permutation and, based on the rules in `fluid_block_permutations.json`, selects the correct geometry from `fluid_geometry.json` to render, creating the visual effect of flowing fluid.
+1.  **Placement**: A player places a fluid block using a bucket. The `placeOrTakeFluid` function in `fluids.js` handles this.
+2.  **Update Trigger**: The placement of the new block (or any other world change) is detected by `BlockUpdate.js`.
+3.  **Queueing**: `BlockUpdate.js` triggers the listener in `API.js`. The listener checks if the changed block is a fluid and, if so, adds it (and its neighbors) to the appropriate `FluidQueue`.
+4.  **Processing**: On a regular system interval (`system.runInterval`), the `FluidQueue` processes a few blocks from its queue. For each block, it calls the `fluidUpdate` function from `API.js`.
+5.  **State Calculation**: `fluidUpdate` checks the surrounding blocks (above, below, and horizontally) and determines if the fluid should flow down, spread sideways, or be removed. It calculates the new depth for any new fluid blocks.
+6.  **Permutation Update**: The script updates the block's permutation with the newly calculated states (depth, slope, etc.).
+7.  **Rendering**: The game client sees the new permutation and, based on the rules in `fluid_block_permutations.json`, selects the correct geometry from `fluid_geometry.json` to render, creating the visual effect of flowing fluid.
 
-## How to Use and Extend
+## How to Use and Extend (Manual Process)
 
-To create a new custom fluid:
+To create a new custom fluid, you must currently perform these steps manually:
 
-1.  **Configure Generators**: Modify the Python scripts (`fluids_geometry.py` and `perm_generator_sen.py`) to define the properties of your new fluid (e.g., name, texture paths).
-2.  **Generate Assets**: Run the Python scripts to generate the corresponding `fluid_geometry.json` and `fluid_block_permutations.json`.
-3.  **Update Resource Pack**:
-    -   Add the generated JSON files to your resource pack.
-    -   Add the necessary textures for your new fluid.
-    -   Update `blocks.json` to define your new fluid block's appearance.
-4.  **Update Behavior Pack**:
+1.  **Create Assets**: Create texture files for your fluid and its bucket.
+2.  **Update Resource Pack**:
+    -   Add texture definitions to `terrain_texture.json` and `item_texture.json`.
+    -   Add a block definition to `blocks.json` mapping your fluid block to its textures.
+3.  **Update Behavior Pack**:
     -   Create a new block definition file (e.g., `my_new_fluid.json`) in the `blocks` folder.
-    -   In this file, define your block and attach the `"lumstudio:fluidBehavior"` custom component.
-    -   In `fluids.js`, create a new `FluidQueue` instance for your new fluid type and register it.
-5.  **Refine Logic**: If your new fluid has unique behaviors, you may need to modify the logic in `fluids.js` and `SenFluids.js`. Given the duplicated code, a refactor to consolidate the logic into a single, clear system is highly recommended.
+    -   Create a bucket item definition file in the `items` folder. Remember to give it a `placer:<your_fluid_id>` tag.
+    -   In `API.js`, import `FluidQueue` and add a new instance for your fluid to the `Queues` object.
+4.  **Run the Game**: The system will now recognize and update your new fluid.
