@@ -26,10 +26,11 @@
       display: block;
       margin-top: 1rem;
     }
-    input[type="text"], input[type="number"], input[type="file"], select {
+    input, select, button {
       width: 100%;
-      padding: 0.5rem;
+      padding: 0.75rem;
       margin-top: 0.25rem;
+      box-sizing: border-box;
     }
     .checkboxes {
       margin-top: 1rem;
@@ -39,21 +40,30 @@
       align-items: center;
     }
     .checkboxes input {
+      width: auto;
       margin-right: 0.5rem;
     }
     button {
       margin-top: 2rem;
-      width: 100%;
-      padding: 1rem;
       background: #007acc;
       color: white;
       font-size: 1rem;
       border: none;
       border-radius: 5px;
       cursor: pointer;
+      transition: background-color 0.2s;
     }
     button:hover {
       background: #005fa3;
+    }
+    button:disabled {
+      background: #cccccc;
+      cursor: not-allowed;
+    }
+    .status {
+      text-align: center;
+      margin-top: 1rem;
+      font-weight: bold;
     }
   </style>
 </head>
@@ -64,11 +74,11 @@
       <label for="fluidName">Fluid Name</label>
       <input type="text" id="fluidName" placeholder="e.g. Liquid Bismuth" required />
 
-      <label for="fluidID">Block ID</label>
-      <input type="text" id="fluidID" placeholder="e.g. lumstudio:liquid_bismuth" required />
+      <label for="fluidID">Block ID (must include namespace)</label>
+      <input type="text" id="fluidID" placeholder="e.g. mypack:liquid_bismuth" required pattern="[a-z_]+:[a-z_]+" />
 
-      <label for="texture">Upload Texture</label>
-      <input type="file" id="texture" accept="image/*" required />
+      <label for="texture">Upload Fluid Texture (PNG)</label>
+      <input type="file" id="texture" accept="image/png" required />
 
       <label for="fogColor">Fog Color</label>
       <input type="color" id="fogColor" value="#777777" />
@@ -93,32 +103,69 @@
         <label><input type="checkbox" id="supportsBoats" checked /> Supports Boats</label>
       </div>
 
-      <button type="submit">Generate Fluid Pack</button>
+      <button type="submit" id="generateButton">Generate Fluid Pack</button>
+      <div class="status" id="statusMessage"></div>
     </form>
   </div>
 
   <script>
-    document.getElementById('fluidForm').addEventListener('submit', function (e) {
+    document.getElementById('fluidForm').addEventListener('submit', async function (e) {
       e.preventDefault();
-      const formData = new FormData(this);
+      const generateButton = document.getElementById('generateButton');
+      const statusMessage = document.getElementById('statusMessage');
 
-      // Read data (stub - you’d hook this into asset generation code)
-      const config = {
-        name: document.getElementById('fluidName').value,
-        id: document.getElementById('fluidID').value,
-        fog: document.getElementById('fogColor').value,
-        buoyancy: parseFloat(document.getElementById('buoyancy').value),
-        damage: parseInt(document.getElementById('damage').value),
-        effect: document.getElementById('effect').value,
-        burnsEntities: document.getElementById('burnsEntities').checked,
-        supportsBoats: document.getElementById('supportsBoats').checked,
-        texture: document.getElementById('texture').files[0],
-      };
+      // Disable button and show status
+      generateButton.disabled = true;
+      statusMessage.textContent = 'Generating... Please wait.';
 
-      console.log('Fluid config:', config);
-      alert('Fluid configuration captured. Pack generation logic goes here.');
+      const formData = new FormData();
+      formData.append('name', document.getElementById('fluidName').value);
+      formData.append('id', document.getElementById('fluidID').value);
+      formData.append('fogColor', document.getElementById('fogColor').value);
+      formData.append('buoyancy', document.getElementById('buoyancy').value);
+      formData.append('damage', document.getElementById('damage').value);
+      formData.append('effect', document.getElementById('effect').value);
+      formData.append('burnsEntities', document.getElementById('burnsEntities').checked);
+      formData.append('supportsBoats', document.getElementById('supportsBoats').checked);
+      formData.append('texture', document.getElementById('texture').files[0]);
+
+      try {
+        const response = await fetch('/generate', {
+          method: 'POST',
+          body: formData, // FormData is sent as multipart/form-data
+        });
+
+        if (!response.ok) {
+          const errorData = await response.json();
+          throw new Error(errorData.message || 'Server responded with an error.');
+        }
+
+        // Get the filename from the Content-Disposition header
+        const disposition = response.headers.get('Content-Disposition');
+        const filename = disposition 
+          ? disposition.split('filename=')[1].replace(/"/g, '') 
+          : 'fluid_pack.mcpack';
+
+        const blob = await response.blob();
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.style.display = 'none';
+        a.href = url;
+        a.download = filename;
+        document.body.appendChild(a);
+        a.click();
+        window.URL.revokeObjectURL(url);
+        document.body.removeChild(a);
+        
+        statusMessage.textContent = 'Generation complete! Check your downloads.';
+      } catch (error) {
+        console.error('Error:', error);
+        statusMessage.textContent = `Error: ${error.message}`;
+      } finally {
+        // Re-enable button
+        generateButton.disabled = false;
+      }
     });
   </script>
 </body>
 </html>
-
