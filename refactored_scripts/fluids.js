@@ -156,6 +156,8 @@ function placeOrTakeFluid(itemStack, player, hit) {
   }
 }
 
+import { effectHandlers } from "./effects/index.js";
+
 function initialize() {
     for (const fluidId in FluidRegistry) {
         Queues[fluidId] = new FluidQueue(fluidUpdate, fluidId);
@@ -192,35 +194,53 @@ function initialize() {
     });
 
     system.runInterval(() => {
-        for (const player of world.getPlayers()) {
-            const headBlock = player.getHeadLocation();
-            const bodyBlock = player.location;
-            const dimension = player.dimension;
-            const fluidId = dimension.getBlock(bodyBlock)?.typeId;
-            const fluidData = FluidRegistry[fluidId];
+        const players = world.getPlayers();
+        const processedEntities = new Set(); // Prevents processing the same entity multiple times
 
-            if (dimension.getBlock(headBlock)?.hasTag("fluid")) {
-                player.runCommandAsync(`fog @s push lumstudio:${fluidData?.fog ?? "default"}_fog fluid_fog`);
+        for (const player of players) {
+            const dimension = player.dimension;
+            const entitiesInRadius = dimension.getEntities({ location: player.location, maxDistance: 64 });
+
+            // --- Player-Specific Effects ---
+            const headBlock = player.getHeadLocation();
+            const fluidInHead = dimension.getBlock(headBlock)?.typeId;
+            const fluidDataInHead = FluidRegistry[fluidInHead];
+
+            if (fluidDataInHead) {
+                player.runCommandAsync(`fog @s push lumstudio:${fluidDataInHead.fog ?? "default"}_fog fluid_fog`);
             } else {
                 player.runCommandAsync("fog @s remove fluid_fog");
             }
 
-            if (fluidData) {
-                if (player.isJumping) {
-                    player.addEffect("slow_falling", 5, { showParticles: false, amplifier: 1 });
-                }
-                const velocity = player.getVelocity();
-                if (velocity.y < 0.05) {
-                    player.applyKnockback(0, 0, 0, Math.abs(velocity.y) * 0.3 + (fluidData.buoyancy || 0));
-                }
-                if (fluidData.damage > 0) {
-                    player.applyDamage(fluidData.damage);
-                }
-                if (fluidData.burnTime > 0) {
-                    player.setOnFire(fluidData.burnTime, true);
-                }
-                if (fluidData.effect) {
-                    player.addEffect(fluidData.effect, 20, { showParticles: false });
+            // --- General Entity Effects ---
+            for (const entity of entitiesInRadius) {
+                if (processedEntities.has(entity.id)) continue; // Skip if already processed
+                processedEntities.add(entity.id);
+
+                const bodyBlock = entity.location;
+                const fluidInBody = dimension.getBlock(bodyBlock)?.typeId;
+                const fluidDataInBody = FluidRegistry[fluidInBody];
+
+                if (fluidDataInBody) {
+                    // Apply general buoyancy for all entities
+                    if (entity.isJumping) { // isJumping is a player-only property, but safe to check
+                        entity.addEffect("slow_falling", 5, { showParticles: false, amplifier: 1 });
+                    }
+                    const velocity = entity.getVelocity();
+                    if (velocity.y < 0.05) {
+                        entity.applyKnockback(0, 0, 0, Math.abs(velocity.y) * 0.3 + (fluidDataInBody.buoyancy || 0));
+                    }
+
+                    // Apply all other effects from the modular system
+                    for (const key in fluidDataInBody) {
+                        if (effectHandlers[key]) {
+                            try {
+                                effectHandlers[key](entity, fluidDataInBody);
+                            } catch (e) {
+                                console.error(`Error applying effect for key '${key}' on entity ${entity.id}: ${e}`);
+                            }
+                        }
+                    }
                 }
             }
         }
