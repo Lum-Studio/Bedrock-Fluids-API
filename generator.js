@@ -160,20 +160,19 @@ function fluidStateFromLevel(depthLevel) {
  * Generates the array of permutation objects.
  * @returns {Array<object>}
  */
-function generatePermutations() {
+function generatePermutations(namespace) {
     const permutations = [];
     for (let depthLevel = 1; depthLevel <= MAX_DEPTH; depthLevel++) {
-        const stateName = fluidStateFromLevel(depthLevel);
         for (const slope of SLOPE_VALUES) {
             const geomId = `geometry.lumstudio.fluid.${depthLevel}_${slope}`;
-            const condition = `q.block_state('lumstudio:depth') == ${depthLevel - 1} && q.block_state('slope') == '${slope}'`;
+            const condition = `q.block_state('lumstudio:depth') == ${depthLevel - 1} && q.block_state('${namespace}:slope') == '${slope}'`;
             permutations.push({
                 condition: condition,
                 components: {
                     "minecraft:geometry": geomId,
                     "minecraft:material_instances": {
                         "*": {
-                            "texture": "textures/blocks/this_is_a_temporary_placeholder", // This will be replaced by the main block's texture
+                            "texture": "this_is_a_temporary_placeholder",
                             "render_method": "blend"
                         }
                     }
@@ -193,7 +192,8 @@ function generatePermutations() {
  * @returns {object}
  */
 function getBlockJson(config, permutations) {
-    const fluidId = config.id; // e.g., "lumstudio:oil"
+    const fluidId = config.id;
+    const namespace = fluidId.split(':')[0];
     const safeId = fluidId.replace(':', '_');
 
     const components = {
@@ -205,7 +205,7 @@ function getBlockJson(config, permutations) {
         },
         "minecraft:material_instances": {
             "*": {
-                "texture": safeId, // Dynamic texture
+                "texture": safeId,
                 "render_method": "blend",
                 "face_dimming": false,
                 "ambient_occlusion": false,
@@ -225,15 +225,19 @@ function getBlockJson(config, permutations) {
         "minecraft:destructible_by_explosion": { "explosion_resistance": 500 }
     };
 
+    if (config.supportsBoats) {
+        components["minecraft:boat_passable"] = {};
+    }
+
     return {
-        "format_version": "1.19.70",
+        "format_version": "1.21.10",
         "minecraft:block": {
             "description": {
                 "identifier": fluidId,
                 "properties": {
                     "lumstudio:depth": [0, 1, 2, 3, 4, 5, 6, 7],
-                    "slope": ["none", "n", "e", "s", "w", "ne", "nw", "se", "sw"],
-                    "fluid_state": ["full", "flowing_0", "flowing_1", "flowing_2", "flowing_3", "flowing_4", "flowing_5", "empty"],
+                    [`${namespace}:slope`]: ["none", "n", "e", "s", "w", "ne", "nw", "se", "sw"],
+                    [`${namespace}:fluid_state`]: ["full", "flowing_0", "flowing_1", "flowing_2", "flowing_3", "flowing_4", "flowing_5", "empty"],
                     "lumstudio:fluidMode": ["dormant", "active"]
                 }
             },
@@ -249,9 +253,10 @@ function getBlockJson(config, permutations) {
  * @returns {object}
  */
 function getBucketItemJson(config) {
-    const fluidId = config.id; // e.g., "wiki:oil"
-    const bucketId = `${fluidId}_bucket`; // e.g., "wiki:oil_bucket"
-    const fluidName = config.name; // e.g., "Oil"
+    const fluidId = config.id;
+    const namespace = fluidId.split(':')[0];
+    const bucketId = `${fluidId}_bucket`;
+    const fluidName = config.name;
 
     const components = {
         "minecraft:max_stack_size": 1,
@@ -264,8 +269,8 @@ function getBucketItemJson(config) {
                 "name": fluidId,
                 "states": {
                     "lumstudio:depth": 7,
-                    "slope": "none",
-                    "fluid_state": "full",
+                    [`${namespace}:slope`]: "none",
+                    [`${namespace}:fluid_state`]: "full",
                     "lumstudio:fluidMode": "dormant"
                 }
             }
