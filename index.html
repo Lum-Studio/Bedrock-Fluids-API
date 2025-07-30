@@ -186,7 +186,7 @@
 
         // 5. Generate and trigger download
         const blob = await zip.generateAsync({ type: 'blob' });
-        const filename = `${config.name.replace(/\s/g, '_')}_Pack.mcpack`;
+        const filename = `${config.name.replace(/\s/g, '_')}_Addon.mcaddon`;
         
         const a = document.createElement('a');
         a.style.display = 'none';
