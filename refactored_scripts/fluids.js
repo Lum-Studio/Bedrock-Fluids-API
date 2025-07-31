@@ -147,6 +147,13 @@ function fluidUpdate(block) {
     }
 }
 
+/**
+ * Handles the logic for placing fluid from a bucket or picking it up into an empty bucket.
+ * This function is called when a player uses an item.
+ * @param {ItemStack} itemStack The item that was used.
+ * @param {Player} player The player who used the item.
+ * @param {import("@minecraft/server").BlockHitInformation} hit The block that was hit by the player's view, or null.
+ */
 function placeOrTakeFluid(itemStack, player, hit) {
   const fluidPlacerTag = itemStack.getTags().find((str) => str.startsWith("placer:"));
   if (!hit) return;
