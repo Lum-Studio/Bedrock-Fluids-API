@@ -117,4 +117,4 @@ To add a completely new type of effect (e.g., one that repairs armor), you need 
 
 3.  **Use in Registry:** You can now use the `repairAmount` property when defining a fluid in `registry.js`.
 
-This modular system ensures that the core logic remains untouched and new features can be added safely and cleanly.
+

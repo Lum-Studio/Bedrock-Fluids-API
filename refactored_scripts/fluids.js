@@ -193,53 +193,79 @@ function initialize() {
         });
     });
 
-    system.runInterval(() => {
-        const players = world.getPlayers();
-        const processedEntities = new Set(); // Prevents processing the same entity multiple times
+    const entitiesInFluid = new Set();
 
-        for (const player of players) {
-            const dimension = player.dimension;
-            const entitiesInRadius = dimension.getEntities({ location: player.location, maxDistance: 64 });
+    world.afterEvents.entityMove.subscribe((event) => {
+        const { entity, previousLocation } = event;
+        const dimension = entity.dimension;
+
+        const oldBlock = dimension.getBlock(previousLocation);
+        const newBlock = dimension.getBlock(entity.location);
+
+        const wasInFluid = FluidRegistry[oldBlock?.typeId];
+        const isInFluid = FluidRegistry[newBlock?.typeId];
+
+        if (!wasInFluid && isInFluid) {
+            // Entity entered a fluid
+            entitiesInFluid.add(entity);
+        } else if (wasInFluid && !isInFluid) {
+            // Entity exited a fluid
+            entitiesInFluid.delete(entity);
+            if (entity.typeId === "minecraft:player") {
+                 entity.runCommandAsync("fog @s remove fluid_fog");
+            }
+        }
+    });
+
+    system.runInterval(() => {
+        for (const entity of entitiesInFluid) {
+            if (!entity.isValid()) {
+                entitiesInFluid.delete(entity);
+                continue;
+            }
+            
+            const dimension = entity.dimension;
+            const bodyBlock = dimension.getBlock(entity.location);
+            const fluidDataInBody = FluidRegistry[bodyBlock?.typeId];
+
+            if (!fluidDataInBody) {
+                // Entity is no longer in a fluid, remove from set
+                entitiesInFluid.delete(entity);
+                if (entity.typeId === "minecraft:player") {
+                    entity.runCommandAsync("fog @s remove fluid_fog");
+                }
+                continue;
+            }
 
             // --- Player-Specific Effects ---
-            const headBlock = player.getHeadLocation();
-            const fluidInHead = dimension.getBlock(headBlock)?.typeId;
-            const fluidDataInHead = FluidRegistry[fluidInHead];
-
-            if (fluidDataInHead) {
-                player.runCommandAsync(`fog @s push lumstudio:${fluidDataInHead.fog ?? "default"}_fog fluid_fog`);
-            } else {
-                player.runCommandAsync("fog @s remove fluid_fog");
+            if (entity.typeId === "minecraft:player") {
+                const headBlock = entity.getHeadLocation();
+                const fluidInHead = dimension.getBlock(headBlock)?.typeId;
+                const fluidDataInHead = FluidRegistry[fluidInHead];
+                if (fluidDataInHead) {
+                    entity.runCommandAsync(`fog @s push lumstudio:${fluidDataInHead.fog ?? "default"}_fog fluid_fog`);
+                } else {
+                    entity.runCommandAsync("fog @s remove fluid_fog");
+                }
             }
 
             // --- General Entity Effects ---
-            for (const entity of entitiesInRadius) {
-                if (processedEntities.has(entity.id)) continue; // Skip if already processed
-                processedEntities.add(entity.id);
+            // Apply general buoyancy for all entities
+            if (entity.isJumping) { // isJumping is a player-only property, but safe to check
+                entity.addEffect("slow_falling", 5, { showParticles: false, amplifier: 1 });
+            }
+            const velocity = entity.getVelocity();
+            if (velocity.y < 0.05) {
+                entity.applyKnockback(0, 0, 0, Math.abs(velocity.y) * 0.3 + (fluidDataInBody.buoyancy || 0));
+            }
 
-                const bodyBlock = entity.location;
-                const fluidInBody = dimension.getBlock(bodyBlock)?.typeId;
-                const fluidDataInBody = FluidRegistry[fluidInBody];
-
-                if (fluidDataInBody) {
-                    // Apply general buoyancy for all entities
-                    if (entity.isJumping) { // isJumping is a player-only property, but safe to check
-                        entity.addEffect("slow_falling", 5, { showParticles: false, amplifier: 1 });
-                    }
-                    const velocity = entity.getVelocity();
-                    if (velocity.y < 0.05) {
-                        entity.applyKnockback(0, 0, 0, Math.abs(velocity.y) * 0.3 + (fluidDataInBody.buoyancy || 0));
-                    }
-
-                    // Apply all other effects from the modular system
-                    for (const key in fluidDataInBody) {
-                        if (effectHandlers[key]) {
-                            try {
-                                effectHandlers[key](entity, fluidDataInBody);
-                            } catch (e) {
-                                console.error(`Error applying effect for key '${key}' on entity ${entity.id}: ${e}`);
-                            }
-                        }
+            // Apply all other effects from the modular system
+            for (const key in fluidDataInBody) {
+                if (effectHandlers[key]) {
+                    try {
+                        effectHandlers[key](entity, fluidDataInBody);
+                    } catch (e) {
+                        console.error(`Error applying effect for key '${key}' on entity ${entity.id}: ${e}`);
                     }
                 }
             }
