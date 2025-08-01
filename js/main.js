@@ -43,10 +43,17 @@ document.getElementById('fluidForm').addEventListener('submit', async function (
         const packName = `${config.name} Fluid Pack`;
         const packDesc = `A custom fluid pack for ${config.name}. Made with Bedrock Fluids API.`;
 
-        // --- Generate Core Assets using geometric_gen.js ---
+        // --- Generate Core Assets ---
         const geometry = generateGeometries();
         const blockJson = getBlockJson(config);
         const bucketJson = getBucketItemJson(config);
+        
+        const hexColor = config.fogColor.substring(1); // Remove '#'
+        const fogIdentifier = `lumstudio:${hexColor}_fog`;
+        const fogJson = new FogGenerator(fogIdentifier)
+            .setDistance("air", 0.0, 15.0, config.fogColor)
+            .setDistance("weather", 0.0, 15.0, config.fogColor)
+            .build();
         
         // --- Generate Manifests ---
         const bpManifest = getManifestJson(packName, packDesc, "behaviors");
@@ -87,6 +94,7 @@ document.getElementById('fluidForm').addEventListener('submit', async function (
         const rp = zip.folder('RP');
         rp.file('pack_icon.png', packIconBuffer);
         rp.file('manifest.json', JSON.stringify(rpManifest, null, 2));
+        rp.folder('fogs').file(`${hexColor}_fog.json`, JSON.stringify(fogJson, null, 2));
         const blocksRpJson = { "format_version": [1, 1, 0], [config.id]: { "sound": "bucket.fill_lava", "textures": safeId } };
         const itemTextureJson = {
             resource_pack_name: "vanilla",

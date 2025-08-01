@@ -248,7 +248,7 @@ function initialize() {
                         // Entity was in a fluid but is no longer.
                         entitiesInFluid.delete(entity.id);
                         if (entity.typeId === "minecraft:player") {
-                            entity.runCommandAsync("fog @s remove fluid_fog");
+                            entity.runCommand("fog @s remove fluid_fog");
                         }
                     }
                 }
@@ -273,7 +273,7 @@ function initialize() {
             if (!fluidDataInBody) {
                 entitiesInFluid.delete(entityId);
                 if (entity.typeId === "minecraft:player") {
-                    entity.runCommandAsync("fog @s remove fluid_fog");
+                    entity.runCommand("fog @s remove fluid_fog");
                 }
                 continue;
             }
@@ -283,10 +283,11 @@ function initialize() {
                 const headBlock = entity.getHeadLocation();
                 const fluidInHead = entity.dimension.getBlock(headBlock)?.typeId;
                 const fluidDataInHead = FluidRegistry[fluidInHead];
-                if (fluidDataInHead) {
-                    entity.runCommandAsync(`fog @s push lumstudio:${fluidDataInHead.fog ?? "default"}_fog fluid_fog`);
+                if (fluidDataInHead && fluidDataInHead.fog) {
+                    const fogId = `lumstudio:${fluidDataInHead.fog}_fog`;
+                    entity.runCommand(`fog @s push ${fogId} fluid_fog`);
                 } else {
-                    entity.runCommandAsync("fog @s remove fluid_fog");
+                    entity.runCommand("fog @s remove fluid_fog");
                 }
             }
 

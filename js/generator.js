@@ -10,7 +10,7 @@ function getRegistryScript(config) {
     const registry = {
         [fluidId]: {
             damage: config.damage,
-            fog: config.fogColor,
+            fog: config.fogColor.substring(1), // Store hex without '#'
             buoyancy: config.buoyancy,
             boat: config.supportsBoats,
         }

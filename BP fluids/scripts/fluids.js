@@ -87,9 +87,9 @@ system.runInterval(() => {
 
     // Fluid Fog Effect
     if (dimension.getBlock(headBlock)?.hasTag("fluid")) {
-      player.runCommandAsync("fog @s push lumstudio:custom_fluid_fog fluid_fog");
+      player.runCommand("fog @s push lumstudio:custom_fluid_fog fluid_fog");
     } else {
-      player.runCommandAsync("fog @s remove fluid_fog");
+      player.runCommand("fog @s remove fluid_fog");
     }
 
     // Buoyancy & Slow Falling Effects
