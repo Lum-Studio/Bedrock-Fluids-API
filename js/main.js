@@ -44,9 +44,8 @@ document.getElementById('fluidForm').addEventListener('submit', async function (
         const packDesc = `A custom fluid pack for ${config.name}. Made with Bedrock Fluids API.`;
 
         // --- Generate Core Assets using geometric_gen.js ---
-        const permutations = generatePermutations(namespace);
         const geometry = generateGeometries();
-        const blockJson = getBlockJson(config, permutations);
+        const blockJson = getBlockJson(config);
         const bucketJson = getBucketItemJson(config);
         
         // --- Generate Manifests ---
@@ -60,15 +59,29 @@ document.getElementById('fluidForm').addEventListener('submit', async function (
         bp.folder('blocks').file(`${safeId}.json`, JSON.stringify(blockJson, null, 2));
         bp.folder('items').file(`${safeId}_bucket.json`, JSON.stringify(bucketJson, null, 2));
         
+        // --- Scripting Engine ---
         const scriptsFolder = bp.folder('scripts');
-        for (const [fileName, content] of Object.entries(SCRIPTS)) {
-            const path = fileName.split('/');
-            let currentFolder = scriptsFolder;
-            for (let i = 0; i < path.length - 1; i++) {
-                currentFolder = currentFolder.folder(path[i]);
-            }
-            currentFolder.file(path[path.length - 1], content);
+        const scriptFiles = [
+            'refactored_scripts/main.js',
+            'refactored_scripts/fluids.js',
+            'refactored_scripts/BlockUpdate.js',
+            'refactored_scripts/queue.js',
+            'refactored_scripts/effects/index.js',
+            'refactored_scripts/effects/damage.js',
+            'refactored_scripts/effects/burn.js',
+            'refactored_scripts/effects/statusEffect.js',
+            'refactored_scripts/effects/boat.js',
+        ];
+
+        for (const filePath of scriptFiles) {
+            const response = await fetch(filePath);
+            if (!response.ok) throw new Error(`Failed to fetch script: ${filePath}`);
+            const content = await response.text();
+            const zipPath = filePath.replace('refactored_scripts/', '');
+            scriptsFolder.file(zipPath, content);
         }
+        // Add the dynamically generated registry
+        scriptsFolder.file('registry.js', getRegistryScript(config));
 
         // --- Resource Pack (RP) ---
         const rp = zip.folder('RP');

@@ -186,24 +186,28 @@ function generatePermutations(namespace) {
 // --- File Generation Logic ---
 
 /**
- * Creates the JSON for the fluid's block definition file.
+ * Creates the JSON for the fluid's block definition file using the BlockGenerator API.
  * @param {object} config The fluid configuration from the frontend.
- * @param {Array<object>} permutations The array of permutation objects.
  * @returns {object}
  */
-function getBlockJson(config, permutations) {
+function getBlockJson(config) {
     const fluidId = config.id;
     const namespace = fluidId.split(':')[0];
     const safeId = fluidId.replace(':', '_');
 
-    const components = {
-        "minecraft:tags": {
-            "tags": [
-                "fluid",
-                safeId
-            ]
-        },
-        "minecraft:material_instances": {
+    const generator = new BlockGenerator("1.21.10", fluidId);
+
+    // Add properties
+    generator
+        .addProperty("lumstudio:depth", [0, 1, 2, 3, 4, 5, 6, 7])
+        .addProperty(`${namespace}:slope`, ["none", "n", "e", "s", "w", "ne", "nw", "se", "sw"])
+        .addProperty(`${namespace}:fluid_state`, ["full", "flowing_0", "flowing_1", "flowing_2", "flowing_3", "flowing_4", "flowing_5", "empty"])
+        .addProperty("lumstudio:fluidMode", ["dormant", "active"]);
+
+    // Add base components
+    generator
+        .addComponent("minecraft:tags", { "tags": ["fluid", safeId] })
+        .addComponent("minecraft:material_instances", {
             "*": {
                 "texture": safeId,
                 "render_method": "blend",
@@ -211,43 +215,34 @@ function getBlockJson(config, permutations) {
                 "ambient_occlusion": false,
                 "fog_color": config.fogColor
             }
-        },
-        "minecraft:geometry": "geometry.lumstudio.fluid.8_none",
-        "minecraft:placement_filter": {
-            "conditions": [
-                {
-                    "allowed_faces": ["up", "down", "north", "south", "east", "west"]
-                }
-            ]
-        },
-        "minecraft:loot": "loot_tables/empty.json",
-        "minecraft:destructible_by_mining": { "seconds_to_destroy": 100 },
-        "minecraft:destructible_by_explosion": { "explosion_resistance": 500 }
-    };
+        })
+        .addComponent("minecraft:geometry", "geometry.lumstudio.fluid.8_none")
+        .addComponent("minecraft:placement_filter", {
+            "conditions": [{ "allowed_faces": ["up", "down", "north", "south", "east", "west"] }]
+        })
+        .addComponent("minecraft:loot", "loot_tables/empty.json")
+        .addComponent("minecraft:destructible_by_mining", { "seconds_to_destroy": 100 })
+        .addComponent("minecraft:destructible_by_explosion", { "explosion_resistance": 500 });
 
     if (config.supportsBoats) {
-        components["minecraft:boat_passable"] = {};
+        generator.addComponent("minecraft:boat_passable", {});
     }
     if (config.lightLevel && config.lightLevel > 0) {
-        components["minecraft:light_emission"] = config.lightLevel;
+        generator.addComponent("minecraft:light_emission", config.lightLevel);
     }
 
-    return {
-        "format_version": "1.21.10",
-        "minecraft:block": {
-            "description": {
-                "identifier": fluidId,
-                "properties": {
-                    "lumstudio:depth": [0, 1, 2, 3, 4, 5, 6, 7],
-                    [`${namespace}:slope`]: ["none", "n", "e", "s", "w", "ne", "nw", "se", "sw"],
-                    [`${namespace}:fluid_state`]: ["full", "flowing_0", "flowing_1", "flowing_2", "flowing_3", "flowing_4", "flowing_5", "empty"],
-                    "lumstudio:fluidMode": ["dormant", "active"]
-                }
-            },
-            "components": components,
-            "permutations": permutations
+    // Add permutations for geometry based on depth and slope
+    for (let depthLevel = 1; depthLevel <= MAX_DEPTH; depthLevel++) {
+        for (const slope of SLOPE_VALUES) {
+            const geomId = `geometry.lumstudio.fluid.${depthLevel}_${slope}`;
+            const condition = `q.block_state('lumstudio:depth') == ${depthLevel - 1} && q.block_state('${namespace}:slope') == '${slope}'`;
+            generator.addPermutation(condition, {
+                "minecraft:geometry": geomId
+            });
         }
-    };
+    }
+
+    return generator.build();
 }
 
 /**
