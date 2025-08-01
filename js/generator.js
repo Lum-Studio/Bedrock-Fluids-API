@@ -15,10 +15,12 @@ function getRegistryScript(config) {
             boat: config.supportsBoats,
         }
     };
+
     if (config.burnsEntities) {
-        registry[fluidId].burnTime = 5; // Default burn time
+        registry[fluidId].burnTime = 5; // Default burn time of 5 seconds
     }
-    if (config.effect) {
+
+    if (config.effect && config.effect !== "") {
         registry[fluidId].effect = config.effect;
     }
 
