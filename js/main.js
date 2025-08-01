@@ -12,16 +12,29 @@ document.getElementById('fluidForm').addEventListener('submit', async function (
         fogColor: document.getElementById('fogColor').value,
         buoyancy: parseFloat(document.getElementById('buoyancy').value),
         damage: parseInt(document.getElementById('damage').value),
+        lightLevel: parseInt(document.getElementById('lightLevel').value),
         effect: document.getElementById('effect').value,
         burnsEntities: document.getElementById('burnsEntities').checked,
         supportsBoats: document.getElementById('supportsBoats').checked,
     };
     const textureFile = document.getElementById('texture').files[0];
     const bucketTextureFile = document.getElementById('bucketTexture').files[0];
+    const packIconFile = document.getElementById('packIcon').files[0];
 
     try {
         const textureBuffer = await textureFile.arrayBuffer();
         const bucketTextureBuffer = await bucketTextureFile.arrayBuffer();
+        
+        let packIconBuffer;
+        if (packIconFile) {
+            packIconBuffer = await packIconFile.arrayBuffer();
+        } else {
+            // Fetch the default icon if none is provided
+            const response = await fetch('pack_icon.png');
+            if (!response.ok) throw new Error('Could not load default pack icon.');
+            packIconBuffer = await response.arrayBuffer();
+        }
+
         statusMessage.textContent = 'Generating assets...';
 
         const zip = new JSZip();
@@ -42,6 +55,7 @@ document.getElementById('fluidForm').addEventListener('submit', async function (
 
         // --- Behavior Pack (BP) ---
         const bp = zip.folder('BP');
+        bp.file('pack_icon.png', packIconBuffer);
         bp.file('manifest.json', JSON.stringify(bpManifest, null, 2));
         bp.folder('blocks').file(`${safeId}.json`, JSON.stringify(blockJson, null, 2));
         bp.folder('items').file(`${safeId}_bucket.json`, JSON.stringify(bucketJson, null, 2));
@@ -58,6 +72,7 @@ document.getElementById('fluidForm').addEventListener('submit', async function (
 
         // --- Resource Pack (RP) ---
         const rp = zip.folder('RP');
+        rp.file('pack_icon.png', packIconBuffer);
         rp.file('manifest.json', JSON.stringify(rpManifest, null, 2));
         const blocksRpJson = { "format_version": [1, 1, 0], [config.id]: { "sound": "bucket.fill_lava", "textures": safeId } };
         const itemTextureJson = {

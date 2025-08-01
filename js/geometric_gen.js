@@ -228,6 +228,9 @@ function getBlockJson(config, permutations) {
     if (config.supportsBoats) {
         components["minecraft:boat_passable"] = {};
     }
+    if (config.lightLevel && config.lightLevel > 0) {
+        components["minecraft:light_emission"] = config.lightLevel;
+    }
 
     return {
         "format_version": "1.21.10",
